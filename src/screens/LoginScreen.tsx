@@ -18,7 +18,7 @@ type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  Home: undefined; 
+  MainApp: undefined; 
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
@@ -31,11 +31,11 @@ const Login = () => {
   const handleLogin = () => {
     // Ntar dimasukin klo endpoin udh jadi
     console.log('Login attempted with:', { email, password });
-    navigation.navigate('Home');
+    navigation.navigate('MainApp');
   };
 
   const handleRegisterPress = () => {
-    navigation.navigate('Register');
+    navigation.navigate('MainApp');
   };
 
   return (

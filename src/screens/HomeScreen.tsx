@@ -10,11 +10,27 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import QuestCard from '~/components/QuestCard'; // Import QuestCard component
 
 type RootStackParamList = {
   Home: undefined;
-  // ...existing code...
+  Login: undefined;
+  SplashScreen: undefined; 
 };
+
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Login from './LoginScreen';
+
+const Tab = createBottomTabNavigator();
+
+function MyTabs() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Login" component={Login} />
+    </Tab.Navigator>
+  );
+}
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -42,17 +58,12 @@ const HomeScreen = () => {
           </View>
 
           {/* Quest Hari Ini */}
-          <View className="mt-6 bg-purple-800 rounded-xl p-4">
-            <Text className="text-white text-lg font-bold">Quest Hari Ini!</Text>
-            <Text className="text-white mt-1">Maret, 2025</Text>
-            <View className="mt-4 bg-white rounded-xl p-4">
-              <Text className="text-purple-800 text-lg font-bold">14 Maret 2025</Text>
-              <Text className="text-purple-800 mt-1">Pull up x20</Text>
-              <Text className="text-gray-500 mt-1">Workout 1 dari 5</Text>
-              <Text className="text-purple-800 mt-4">Selanjutnya</Text>
-              <Text className="text-gray-500">Push Up</Text>
-            </View>
-          </View>
+          <QuestCard 
+            date="14 Maret 2025"
+            title="Pull up x20"
+            description="Workout 1 dari 5"
+            nextWorkout="Push Up"
+          />
 
           {/* Aktivitas Terkini */}
           <View className="mt-6">
@@ -116,22 +127,6 @@ const HomeScreen = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="flex-row justify-around items-center py-4 bg-white border-t border-gray-200">
-        <TouchableOpacity>
-          <Text className="text-purple-800 font-bold">Beranda</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text className="text-gray-500">Quest</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text className="text-gray-500">Aktivitas</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text className="text-gray-500">Shop</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
