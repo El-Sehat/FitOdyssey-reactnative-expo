@@ -1,6 +1,5 @@
-import React from 'react';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface TodayQuestCardProps {
   date: string;
@@ -9,22 +8,32 @@ interface TodayQuestCardProps {
   nextWorkout: string;
 }
 
-const TodayQuestCard: React.FC<TodayQuestCardProps> = ({ date, title, description, nextWorkout }) => {
+const TodayQuestCard: React.FC<TodayQuestCardProps> = ({
+  date,
+  title,
+  description,
+  nextWorkout,
+}) => {
   return (
-    <LinearGradient
-      colors={['#391484', '#591E89']}
-      className="mt-6 rounded-[5rem] p-4"
-    >
-      <Text className="text-white text-lg font-bold">Quest Hari Ini!</Text>
-      <Text className="text-white mt-1">Maret, 2025</Text>
-      <View className="mt-4 bg-white rounded-xl p-4">
-        <Text className="text-purple-900 text-lg font-bold">{date}</Text>
-        <Text className="text-purple-900 mt-1">{title}</Text>
-        <Text className="text-gray-500 mt-1">{description}</Text>
-        <Text className="text-purple-900 mt-4">Selanjutnya</Text>
-        <Text className="text-gray-500">{nextWorkout}</Text>
+    <View className="mt-6 rounded-xl bg-purple-800 px-8 py-6">
+      <View className="flex-row gap-6 pb-4">
+        <View className="h-16 w-16 items-center justify-center rounded-full border-white bg-red-400">
+          <MaterialCommunityIcons name="lightning-bolt-outline" size={28} color="white" />
+        </View>
+        <View className="flex flex-col">
+          <Text className="text-gray-200 opacity-80">{date}</Text>
+          <Text className="text-2xl font-bold text-white">{title}</Text>
+          <Text className="text-gray-200 opacity-80">{description}</Text>
+        </View>
       </View>
-    </LinearGradient>
+      <View className="mt-4 flex flex-row items-center gap-6 rounded-xl bg-white p-6 pl-6">
+        <FontAwesome5 name="angle-double-right" size={24} color="black" />
+        <View className="flex flex-col">
+          <Text className="text-sm tracking-wider opacity-40">Selanjutnya</Text>
+          <Text className="font-extrabold">{nextWorkout}</Text>
+        </View>
+      </View>
+    </View>
   );
 };
 
