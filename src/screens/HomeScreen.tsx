@@ -9,17 +9,15 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { View, Text, Image, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import QuestCard from '~/components/QuestCard'; // Import QuestCard component
+import QuestCard from '~/components/QuestCard';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Login from './LoginScreen';
 
 type RootStackParamList = {
   Home: undefined;
   Login: undefined;
-  SplashScreen: undefined; 
+  SplashScreen: undefined;
 };
-
-
 
 const Tab = createBottomTabNavigator();
 
