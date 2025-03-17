@@ -1,5 +1,4 @@
 import { Entypo } from '@expo/vector-icons';
-import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QuestCard from '~/components/QuestCard'; // Import QuestCard component
