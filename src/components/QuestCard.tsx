@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text } from 'react-native';
 
 interface QuestCardProps {
   date: string;
@@ -11,17 +10,14 @@ interface QuestCardProps {
 
 const QuestCard: React.FC<QuestCardProps> = ({ date, title, description, nextWorkout }) => {
   return (
-    <LinearGradient
-      colors={['#391484', '#591E89']}
-      className="mt-6 rounded-[5rem] p-4"
-    >
-      <Text className="text-white text-lg font-bold">Quest Hari Ini!</Text>
-      <Text className="text-white mt-1">Maret, 2025</Text>
-      <View className="mt-4 bg-white rounded-xl p-4">
-        <Text className="text-purple-800 text-lg font-bold">{date}</Text>
-        <Text className="text-purple-800 mt-1">{title}</Text>
-        <Text className="text-gray-500 mt-1">{description}</Text>
-        <Text className="text-purple-800 mt-4">Selanjutnya</Text>
+    <LinearGradient colors={['#391484', '#591E89']} className="mt-6 rounded-[5rem] p-4">
+      <Text className="text-lg font-bold text-white">Quest Hari Ini!</Text>
+      <Text className="mt-1 text-white">Maret, 2025</Text>
+      <View className="mt-4 rounded-xl bg-white p-4">
+        <Text className="text-lg font-bold text-purple-800">{date}</Text>
+        <Text className="mt-1 text-purple-800">{title}</Text>
+        <Text className="mt-1 text-gray-500">{description}</Text>
+        <Text className="mt-4 text-purple-800">Selanjutnya</Text>
         <Text className="text-gray-500">{nextWorkout}</Text>
       </View>
     </LinearGradient>
