@@ -4,14 +4,13 @@ import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Fontisto from '@expo/vector-icons/Fontisto';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { View, Text, Image, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import QuestCard from '~/components/QuestCard';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Login from './LoginScreen';
+import TodayQuestCard from '~/components/TodayQuestCard';
 
 type RootStackParamList = {
   Home: undefined;
@@ -75,25 +74,12 @@ const HomeScreen = () => {
             <Text className="text-2xl font-extrabold text-violet-900">Quest Hari Ini!</Text>
             <Entypo name="dots-two-vertical" size={24} color="black" />
           </View>
-          <View className="mt-6 rounded-xl bg-purple-800 px-8 py-6">
-            <View className="flex-row gap-6 pb-4">
-              <View className="h-16 w-16 items-center justify-center rounded-full border-white bg-red-400">
-                <MaterialCommunityIcons name="lightning-bolt-outline" size={28} color="white" />
-              </View>
-              <View className="flex flex-col">
-                <Text className="text-gray-200 opacity-80">{formattedDate}</Text>
-                <Text className="text-2xl font-bold text-white">Pull up x20</Text>
-                <Text className="text-gray-200 opacity-80">Workout 1 dari 5</Text>
-              </View>
-            </View>
-            <View className="mt-4 flex flex-row items-center gap-6 rounded-xl bg-white p-6 pl-6">
-              <FontAwesome5 name="angle-double-right" size={24} color="black" />
-              <View className="flex flex-col">
-                <Text className="text-sm tracking-wider opacity-40">Selanjutnya</Text>
-                <Text className="font-extrabold">Push Up</Text>
-              </View>
-            </View>
-          </View>
+          <TodayQuestCard
+            date={formattedDate}
+            title="Pull up 20x"
+            description="Workout 1 dari 5"
+            nextWorkout="Push up"
+          />
 
           {/* Aktivitas Terkini */}
           <Text className="mb-4 mt-6 text-xl font-bold">Aktivitas Terkini</Text>
@@ -180,8 +166,8 @@ const HomeScreen = () => {
                 <Text className="mt-2 text-sm">Quest selesai</Text>
               </View>
             </View>
-            <View className="flex flex-row justify-between">
-              <View className="mx-6 mb-4 flex flex-row gap-8 pt-8">
+            <View className="mb-4 flex flex-row items-center justify-between pt-8">
+              <View className="mx-6 flex flex-row gap-8">
                 <View className="flex flex-row items-center gap-2">
                   <AntDesign name="hearto" size={16} color="black" />
                   <Text>121</Text>
