@@ -9,11 +9,28 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { View, Text, Image, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QuestCard from '~/components/QuestCard'; // Import QuestCard component
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Login from './LoginScreen';
 
 type RootStackParamList = {
   Home: undefined;
-  // ...existing code...
+  Login: undefined;
+  SplashScreen: undefined; 
 };
+
+
+
+const Tab = createBottomTabNavigator();
+
+function MyTabs() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Login" component={Login} />
+    </Tab.Navigator>
+  );
+}
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -55,11 +72,11 @@ const HomeScreen = () => {
           </View>
 
           {/* Quest Hari Ini */}
+
           <View className="flex flex-row justify-between pt-4">
             <Text className="text-2xl font-extrabold text-violet-900">Quest Hari Ini!</Text>
             <Entypo name="dots-two-vertical" size={24} color="black" />
           </View>
-
           <View className="mt-6 rounded-xl bg-purple-800 px-8 py-6">
             <View className="flex-row gap-6 pb-4">
               <View className="h-16 w-16 items-center justify-center rounded-full border-white bg-red-400">
@@ -184,7 +201,6 @@ const HomeScreen = () => {
           </View>
         </View>
       </ScrollView>
-
       {/* Bottom Navigation */}
       <View className="flex-row items-center justify-around border-t border-gray-200 bg-white py-4">
         <TouchableOpacity>

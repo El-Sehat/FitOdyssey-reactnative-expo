@@ -4,13 +4,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SplashScreen from '~/screens/SplashScreen';
 import LoginScreen from '~/screens/LoginScreen';
 import RegisterScreen from '~/screens/RegisterScreen';
-import HomeScreen from '~/screens/HomeScreen';
+import TabNavigator from './TabNavigator';
 
 export type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  Home: undefined;
+  MainApp: undefined; // This will be your TabNavigator
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -25,7 +25,7 @@ export default function Navigation() {
         <Stack.Screen name="SplashScreen" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="MainApp" component={TabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
