@@ -5,12 +5,14 @@ import SplashScreen from '~/screens/SplashScreen';
 import LoginScreen from '~/screens/LoginScreen';
 import RegisterScreen from '~/screens/RegisterScreen';
 import TabNavigator from './TabNavigator';
+import ProfileScreen from '~/screens/ProfileScreen';
 
 export type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
   MainApp: undefined; // This will be your TabNavigator
+  Profile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -18,14 +20,12 @@ const Stack = createStackNavigator<RootStackParamList>();
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="SplashScreen"
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="SplashScreen" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

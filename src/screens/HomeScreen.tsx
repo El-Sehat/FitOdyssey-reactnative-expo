@@ -48,8 +48,10 @@ const HomeScreen = () => {
         <View className="mt-6 px-6">
           {/* Header */}
           <View className="flex-row items-center justify-between pl-2">
-            <View className="flex-row items-center gap-6">
-              <FontAwesome5 name="user-circle" size={40} color="black" />
+            <View className="flex-row items-center gap-4">
+              <TouchableOpacity className="p-2" onPress={() => navigation.navigate('Profile')}>
+                <FontAwesome5 name="user-circle" size={40} color="black" />
+              </TouchableOpacity>
               <View>
                 <Text className="text-lg text-gray-500">Hello Vincent!</Text>
                 <Text className="text-xl font-bold">{formattedDate}</Text>
