@@ -1,9 +1,13 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import SplashScreen from '~/screens/SplashScreen';
+import React from 'react';
+
+import TabNavigator from './TabNavigator';
+
 import LoginScreen from '~/screens/LoginScreen';
+import MapQuestScreen from '~/screens/MapQuestScreen';
 import RegisterScreen from '~/screens/RegisterScreen';
+import SplashScreen from '~/screens/SplashScreen';
 import TabNavigator from './TabNavigator';
 import ProfileScreen from '~/screens/ProfileScreen';
 
@@ -11,7 +15,8 @@ export type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  MainApp: undefined; // This will be your TabNavigator
+  MainApp: undefined;
+  MapQuest: undefined;
   Profile: undefined;
 };
 
@@ -25,6 +30,7 @@ export default function Navigation() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
+        <Stack.Screen name="MapQuest" component={MapQuestScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
   View,
@@ -11,8 +13,6 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
   SplashScreen: undefined;

@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 
-// Define your navigation types
 type RootStackParamList = {
   Login: undefined;
   Register: undefined;

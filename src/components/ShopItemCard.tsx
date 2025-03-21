@@ -9,15 +9,11 @@ interface ShopItemCardProps {
 
 const ShopItemCard: React.FC<ShopItemCardProps> = ({ image, price, title }) => {
   return (
-    <View className="bg-white rounded-xl p-4 shadow-md m-2">
-      <Image 
-        source={image} 
-        className="w-full h-40 rounded-xl"
-        resizeMode="contain"
-      />
+    <View className="m-2 rounded-xl bg-white p-4 shadow-md">
+      <Image source={image} className="h-40 w-full rounded-xl" resizeMode="contain" />
       <Text className="mt-2 text-lg font-bold">{price}</Text>
       <Text className="text-gray-500">{title}</Text>
-      <TouchableOpacity className="mt-2 bg-blue-500 rounded-full p-2 items-center">
+      <TouchableOpacity className="mt-2 items-center rounded-full bg-blue-500 p-2">
         <Text className="text-white">+</Text>
       </TouchableOpacity>
     </View>

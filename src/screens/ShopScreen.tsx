@@ -1,6 +1,7 @@
+import AntDesign from '@expo/vector-icons/AntDesign';
 import React from 'react';
 import { View, Text, SafeAreaView, ScrollView, StatusBar } from 'react-native';
-import AntDesign from '@expo/vector-icons/AntDesign';
+
 import ShopItemCard from '~/components/ShopItemCard'; // Import ShopItemCard component
 
 const dummyData = [
@@ -9,7 +10,6 @@ const dummyData = [
     price: 'Rp9,900',
     title: 'Stiker Pack #134',
   },
-
 ];
 
 const ShopScreen = () => {
@@ -17,9 +17,9 @@ const ShopScreen = () => {
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar translucent backgroundColor="transparent" />
       <ScrollView className="flex-1">
-        <View className="px-6 mt-6">
+        <View className="mt-6 px-6">
           {/* Search Bar */}
-          <View className="bg-gray-200 rounded-full p-3 flex-row items-center">
+          <View className="flex-row items-center rounded-full bg-gray-200 p-3">
             <AntDesign name="search1" size={24} color="black" />
             <Text className="ml-2 text-gray-500">Ingin Sesuatu?</Text>
           </View>
@@ -35,12 +35,7 @@ const ShopScreen = () => {
           {/* Barang */}
           <View className="mt-6 flex-row flex-wrap justify-between">
             {dummyData.map((item, index) => (
-              <ShopItemCard
-                key={index}
-                image={item.image}
-                price={item.price}
-                title={item.title}
-              />
+              <ShopItemCard key={index} image={item.image} price={item.price} title={item.title} />
             ))}
           </View>
         </View>
