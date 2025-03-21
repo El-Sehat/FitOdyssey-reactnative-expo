@@ -1,8 +1,7 @@
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5, Fontisto } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();

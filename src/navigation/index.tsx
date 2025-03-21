@@ -6,10 +6,9 @@ import TabNavigator from './TabNavigator';
 
 import LoginScreen from '~/screens/LoginScreen';
 import MapQuestScreen from '~/screens/MapQuestScreen';
+import ProfileScreen from '~/screens/ProfileScreen';
 import RegisterScreen from '~/screens/RegisterScreen';
 import SplashScreen from '~/screens/SplashScreen';
-import TabNavigator from './TabNavigator';
-import ProfileScreen from '~/screens/ProfileScreen';
 
 export type RootStackParamList = {
   SplashScreen: undefined;

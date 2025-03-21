@@ -12,14 +12,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+
+import { authService } from '../services/AuthService';
 
 // Define your navigation types
 type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  Home: undefined;
+  MainApp: undefined;
 };
 
 type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Register'>;
@@ -30,14 +34,34 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = () => {
-    // Ntar dimasukin klo endpoin udh jadi
-    console.log('Registration attempted with:', { name, email, password, confirmPassword });
-    if (password === confirmPassword) {
-      navigation.navigate('Login');
-    } else {
-      console.log('Passwords do not match');
+  const handleRegister = async () => {
+    // Validasi dasar, perlu ditambahkan validasi lain biar lebih aman
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert('Validation Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Validation Error', 'Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.register({ name, email, password });
+      Alert.alert('Registration Successful', 'Your account has been created successfully', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      ]);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      Alert.alert(
+        'Registration Failed',
+        error.message || 'An unexpected error occurred. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,6 +114,7 @@ const Register = () => {
                 placeholderTextColor="#9CA3AF"
                 value={name}
                 onChangeText={setName}
+                editable={!isLoading}
               />
             </View>
 
@@ -103,6 +128,7 @@ const Register = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
 
@@ -115,6 +141,7 @@ const Register = () => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                editable={!isLoading}
               />
             </View>
 
@@ -127,13 +154,19 @@ const Register = () => {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
+                editable={!isLoading}
               />
             </View>
 
             <TouchableOpacity
-              className="mb-3 w-full items-center rounded-xl bg-purple-800 py-4"
-              onPress={handleRegister}>
-              <Text className="text-base font-bold text-white">Daftar</Text>
+              className={`mb-3 w-full items-center rounded-xl ${isLoading ? 'bg-purple-600' : 'bg-purple-800'} py-4`}
+              onPress={handleRegister}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-bold text-white">Daftar</Text>
+              )}
             </TouchableOpacity>
 
             <View className="my-6 flex-row items-center justify-center">
@@ -146,7 +179,7 @@ const Register = () => {
 
             <View className="mb-10 mt-6 flex-row justify-center">
               <Text className="text-gray-600">Sudah memiliki akun? </Text>
-              <TouchableOpacity onPress={handleLoginPress}>
+              <TouchableOpacity onPress={handleLoginPress} disabled={isLoading}>
                 <Text className="font-bold text-purple-800">Masuk</Text>
               </TouchableOpacity>
             </View>

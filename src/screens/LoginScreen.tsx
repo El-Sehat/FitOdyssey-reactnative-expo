@@ -12,7 +12,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
+
+import { authService } from '../services/AuthService';
 
 type RootStackParamList = {
   SplashScreen: undefined;
@@ -27,15 +31,32 @@ const Login = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Ntar dimasukin klo endpoin udh jadi
-    console.log('Login attempted with:', { email, password });
-    navigation.navigate('MainApp');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Validation Error', 'Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.login({ email, password });
+      // Jika berhasil, navigate ke MainApp
+      navigation.navigate('MainApp');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      Alert.alert(
+        'Login Failed',
+        error.message || 'An unexpected error occurred. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegisterPress = () => {
-    navigation.navigate('MainApp');
+    navigation.navigate('Register');
   };
 
   return (
@@ -46,7 +67,6 @@ const Login = () => {
         className="flex-1">
         <ScrollView className="mt-[4rem] flex-1">
           {/* Header */}
-
           <View className="mt-6 flex-row items-center justify-between px-6">
             <TouchableOpacity
               onPress={() => navigation.navigate('SplashScreen')}
@@ -88,6 +108,7 @@ const Login = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
 
@@ -100,6 +121,7 @@ const Login = () => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                editable={!isLoading}
               />
               <TouchableOpacity className="mt-2 self-end">
                 <Text className="font-medium text-purple-800">Lupa Password?</Text>
@@ -107,9 +129,14 @@ const Login = () => {
             </View>
 
             <TouchableOpacity
-              className="mb-3 w-full items-center rounded-xl bg-purple-800 py-4"
-              onPress={handleLogin}>
-              <Text className="text-base font-bold text-white">Masuk</Text>
+              className={`mb-3 w-full items-center rounded-xl ${isLoading ? 'bg-purple-600' : 'bg-purple-800'} py-4`}
+              onPress={handleLogin}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-bold text-white">Masuk</Text>
+              )}
             </TouchableOpacity>
 
             <View className="my-6 flex-row items-center justify-center">
@@ -122,7 +149,7 @@ const Login = () => {
 
             <View className="mb-10 mt-6 flex-row justify-center">
               <Text className="text-gray-600">Belum memiliki akun? </Text>
-              <TouchableOpacity onPress={handleRegisterPress}>
+              <TouchableOpacity onPress={handleRegisterPress} disabled={isLoading}>
                 <Text className="font-bold text-purple-800">Daftar</Text>
               </TouchableOpacity>
             </View>
