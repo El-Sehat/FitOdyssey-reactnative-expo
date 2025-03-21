@@ -8,13 +8,16 @@ import LoginScreen from '~/screens/LoginScreen';
 import MapQuestScreen from '~/screens/MapQuestScreen';
 import RegisterScreen from '~/screens/RegisterScreen';
 import SplashScreen from '~/screens/SplashScreen';
+import TabNavigator from './TabNavigator';
+import ProfileScreen from '~/screens/ProfileScreen';
 
 export type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
   MainApp: undefined;
-  MapQuest: undefined; // Add MapQuest to root stack
+  MapQuest: undefined;
+  Profile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -28,6 +31,7 @@ export default function Navigation() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
         <Stack.Screen name="MapQuest" component={MapQuestScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
