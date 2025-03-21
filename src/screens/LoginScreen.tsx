@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
   View,
@@ -11,14 +13,12 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  MainApp: undefined; 
+  MainApp: undefined;
 };
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
@@ -43,49 +43,45 @@ const Login = () => {
       <StatusBar translucent backgroundColor="transparent" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView className="flex-1 mt-[4rem]">
+        className="flex-1">
+        <ScrollView className="mt-[4rem] flex-1">
           {/* Header */}
 
-          <View className="px-6 flex-row justify-between items-center mt-6">
-            <TouchableOpacity 
-              onPress={() => navigation.navigate('SplashScreen')} 
-              className="p-2 rounded-full"
-            >
-              <View className="bg-gray-100 rounded-full p-2">
-              <Image 
-                source={require('assets/back_arrow.png')} 
-                className="w-5 h-5"
-                resizeMode="contain"
-              />
+          <View className="mt-6 flex-row items-center justify-between px-6">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SplashScreen')}
+              className="rounded-full p-2">
+              <View className="rounded-full bg-gray-100 p-2">
+                <Image
+                  source={require('assets/back_arrow.png')}
+                  className="h-5 w-5"
+                  resizeMode="contain"
+                />
               </View>
             </TouchableOpacity>
             <View className="flex-1" />
-            </View>
+          </View>
 
           <View className="items-center">
-            <Image 
+            <Image
               source={require('assets/logo-fitodyssey.png')}
               className="w-25 h-25 my-4"
               resizeMode="contain"
             />
-            <Text className="text-2xl text-black font-bold text-center mt-2">
+            <Text className="mt-2 text-center text-2xl font-bold text-black">
               Halo, Selamat Datang Kembali
             </Text>
-            <Text className="text-base text-gray-500 text-center mt-1">
+            <Text className="mt-1 text-center text-base text-gray-500">
               silahkan login untuk melanjutkan
             </Text>
           </View>
 
-
-          
           {/* Login Form */}
-          <View className="px-6 mt-6">
+          <View className="mt-6 px-6">
             <View className="mb-4">
-              <Text className="text-base font-medium text-gray-700 mb-2">Email</Text>
+              <Text className="mb-2 text-base font-medium text-gray-700">Email</Text>
               <TextInput
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-black"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-black"
                 placeholder="Masukkan email anda"
                 placeholderTextColor="#9CA3AF"
                 value={email}
@@ -94,41 +90,40 @@ const Login = () => {
                 autoCapitalize="none"
               />
             </View>
-            
+
             <View className="mb-6">
-              <Text className="text-base font-medium text-gray-700 mb-2">Password</Text>
+              <Text className="mb-2 text-base font-medium text-gray-700">Password</Text>
               <TextInput
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-black"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-black"
                 placeholder="Masukkan password anda"
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
               />
-              <TouchableOpacity className="self-end mt-2">
-                <Text className="text-purple-800 font-medium">Lupa Password?</Text>
+              <TouchableOpacity className="mt-2 self-end">
+                <Text className="font-medium text-purple-800">Lupa Password?</Text>
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
-              className="w-full py-4 rounded-xl items-center mb-3 bg-purple-800"
-              onPress={handleLogin}
-            >
+              className="mb-3 w-full items-center rounded-xl bg-purple-800 py-4"
+              onPress={handleLogin}>
               <Text className="text-base font-bold text-white">Masuk</Text>
             </TouchableOpacity>
-            
-            <View className="flex-row justify-center items-center my-6">
-              <View className="flex-1 h-[1px] bg-gray-300" />
+
+            <View className="my-6 flex-row items-center justify-center">
+              <View className="h-[1px] flex-1 bg-gray-300" />
               <Text className="mx-4 text-gray-500">Atau login dengan</Text>
-              <View className="flex-1 h-[1px] bg-gray-300" />
+              <View className="h-[1px] flex-1 bg-gray-300" />
             </View>
-            
+
             {/* WIP Oauth kalo jadi? */}
-            
-            <View className="flex-row justify-center mt-6 mb-10">
+
+            <View className="mb-10 mt-6 flex-row justify-center">
               <Text className="text-gray-600">Belum memiliki akun? </Text>
               <TouchableOpacity onPress={handleRegisterPress}>
-                <Text className="text-purple-800 font-bold">Daftar</Text>
+                <Text className="font-bold text-purple-800">Daftar</Text>
               </TouchableOpacity>
             </View>
           </View>

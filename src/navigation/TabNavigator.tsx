@@ -1,10 +1,21 @@
-import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+
+import ActivityScreen from '~/screens/ActivityScreen';
 import HomeScreen from '~/screens/HomeScreen';
 import QuestScreen from '~/screens/QuestScreen';
-import ActivityScreen from '~/screens/ActivityScreen';
 import ShopScreen from '~/screens/ShopScreen';
+
+type RootStackParamList = {
+  SplashScreen: undefined;
+  Login: undefined;
+  Register: undefined;
+  MainApp: undefined;
+  MapQuest: undefined;
+};
 
 const PlayButtonComponent = () => {
   return <View />;
@@ -21,6 +32,8 @@ export type TabParamList = {
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const BottomNavBar = ({ state, descriptors, navigation }: any) => {
+  const rootNavigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   return (
     <View
       style={{
@@ -35,7 +48,6 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
         position: 'relative',
       }}>
       {state.routes.map((route: any, index: number) => {
-        const { options } = descriptors[route.key];
         const label = route.name;
         const isFocused = state.index === index;
 
@@ -47,7 +59,11 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
           });
 
           if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            if (route.name === 'StartButton') {
+              rootNavigation.navigate('MapQuest');
+            } else {
+              navigation.navigate(route.name);
+            }
           }
         };
 
