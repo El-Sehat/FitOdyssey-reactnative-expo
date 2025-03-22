@@ -4,8 +4,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
+import StartButton from '~/components/StartButton';
 import ActivityScreen from '~/screens/ActivityScreen';
 import HomeScreen from '~/screens/HomeScreen';
+import MapQuestScreen from '~/screens/MapQuestScreen';
 import QuestScreen from '~/screens/QuestScreen';
 import ShopScreen from '~/screens/ShopScreen';
 
@@ -15,10 +17,7 @@ type RootStackParamList = {
   Register: undefined;
   MainApp: undefined;
   MapQuest: undefined;
-};
-
-const PlayButtonComponent = () => {
-  return <View />;
+  Profile: undefined;
 };
 
 export type TabParamList = {
@@ -69,39 +68,9 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
 
         if (route.name === 'StartButton') {
           return (
-            <TouchableOpacity
-              key={index}
-              style={{
-                width: 70,
-                height: 70,
-                backgroundColor: '#FF3B5F',
-                borderRadius: 35,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginHorizontal: 12,
-                shadowColor: '#FF3B5F',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.5,
-                shadowRadius: 10,
-                elevation: 8,
-              }}
-              onPress={onPress}>
-              {/* Ini play button ditengah */}
-              <View
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderTopWidth: 12,
-                  borderBottomWidth: 12,
-                  borderLeftWidth: 20,
-                  borderStyle: 'solid',
-                  borderTopColor: 'transparent',
-                  borderBottomColor: 'transparent',
-                  borderLeftColor: 'white',
-                  marginLeft: 5,
-                }}
-              />
-            </TouchableOpacity>
+            <View key={index} style={{ marginHorizontal: 12 }}>
+              <StartButton size={70} onPress={onPress} />
+            </View>
           );
         }
 
@@ -147,7 +116,7 @@ const BottomTabNavigator = () => {
       tabBar={(props) => <BottomNavBar {...props} />}>
       <Tab.Screen name="Beranda" component={HomeScreen} />
       <Tab.Screen name="Quest" component={QuestScreen} />
-      <Tab.Screen name="StartButton" component={PlayButtonComponent} />
+      <Tab.Screen name="StartButton" component={MapQuestScreen} />
       <Tab.Screen name="Aktivitas" component={ActivityScreen} />
       <Tab.Screen name="Shop" component={ShopScreen} />
     </Tab.Navigator>

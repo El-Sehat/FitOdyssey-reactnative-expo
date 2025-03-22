@@ -3,6 +3,7 @@ import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Fontisto from '@expo/vector-icons/Fontisto';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
@@ -36,7 +37,7 @@ const ActivityCard = ({
   onShare,
 }: ActivityCardProps) => {
   return (
-    <View className="-mx-6 w-screen rounded-t-[3rem] bg-white">
+    <View className="-mx-6 w-screen overflow-hidden rounded-t-[3rem] bg-white">
       <View className="mx-6 flex flex-col justify-center">
         <View className="mt-4 flex-row items-center">
           <FontAwesome5 name="user-circle" size={40} color="black" />
@@ -51,33 +52,41 @@ const ActivityCard = ({
       </View>
 
       {/* Statistik */}
-      <View className="mx-6 mt-6 flex-row items-center justify-between rounded-3xl border bg-purple-800 p-4 py-4 text-white">
-        <View className="items-center pl-4">
-          <FontAwesome5 name="star" size={22} color="white" />
-          <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
-            QUEST
-          </Text>
-          <Text className="text-xl font-bold text-white">{questCount}</Text>
+      <LinearGradient
+        colors={['#391484', '#4A1687', '#591E89']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="mx-6 mt-6 overflow-hidden rounded-[24px] p-4 shadow-md">
+        <View className="flex-row items-center justify-between">
+          <View className="items-center pl-4">
+            <FontAwesome5 name="star" size={22} color="white" />
+            <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
+              QUEST
+            </Text>
+            <Text className="text-xl font-bold text-white">{questCount}</Text>
+          </View>
+
+          <View className="h-12 w-px bg-gray-400 opacity-30" />
+
+          <View className="items-center">
+            <Fontisto name="world-o" size={22} color="white" />
+            <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
+              SETS
+            </Text>
+            <Text className="text-xl font-bold text-white">{setsCount}</Text>
+          </View>
+
+          <View className="h-12 w-px bg-gray-400 opacity-30" />
+
+          <View className="items-center pr-4">
+            <Text className="text-2xl font-black tracking-widest text-white">XP</Text>
+            <Text className="text-sm font-bold tracking-wider text-gray-100 opacity-50">
+              DIDAPAT
+            </Text>
+            <Text className="text-xl font-bold text-white">+{xpGained}</Text>
+          </View>
         </View>
-
-        <View className="h-12 w-px bg-gray-400 opacity-30" />
-
-        <View className="items-center">
-          <Fontisto name="world-o" size={22} color="white" />
-          <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
-            SETS
-          </Text>
-          <Text className="text-whited text-xl font-bold text-white">{setsCount}</Text>
-        </View>
-
-        <View className="h-12 w-px bg-gray-400 opacity-30" />
-
-        <View className="items-center pr-4">
-          <Text className="text-2xl font-black tracking-widest text-white">XP</Text>
-          <Text className="text-sm font-bold tracking-wider text-gray-100 opacity-50">DIDAPAT</Text>
-          <Text className="text-xl font-bold text-white">+{xpGained}</Text>
-        </View>
-      </View>
+      </LinearGradient>
 
       {/* Medals */}
       <View className="mx-10 mt-6 flex-row justify-between gap-4">

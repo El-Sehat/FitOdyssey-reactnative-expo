@@ -2,7 +2,8 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import React from 'react';
 import { View, Text, SafeAreaView, ScrollView, StatusBar } from 'react-native';
 
-import ShopItemCard from '~/components/ShopItemCard'; // Import ShopItemCard component
+import ShopItemCard from '~/components/ShopItemCard';
+import { useAuth } from '~/context/AuthContext';
 
 const dummyData = [
   {
@@ -13,11 +14,22 @@ const dummyData = [
 ];
 
 const ShopScreen = () => {
+  const { user } = useAuth();
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar translucent backgroundColor="transparent" />
       <ScrollView className="flex-1">
         <View className="mt-6 px-6">
+          {/* User Info */}
+          {user && (
+            <View className="mb-4 rounded-lg bg-purple-100 p-3">
+              <Text className="text-center text-purple-800">
+                {user.name} • {user.exp} XP Available
+              </Text>
+            </View>
+          )}
+
           {/* Search Bar */}
           <View className="flex-row items-center rounded-full bg-gray-200 p-3">
             <AntDesign name="search1" size={24} color="black" />

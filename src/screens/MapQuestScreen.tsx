@@ -2,8 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 
+import { useAuth } from '~/context/AuthContext';
+
 const MapQuestScreen = () => {
   const navigation = useNavigation();
+  const { user } = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,6 +20,11 @@ const MapQuestScreen = () => {
 
       <View style={styles.content}>
         <Text style={styles.title}>Map Quest</Text>
+        {user && (
+          <Text style={styles.userInfo}>
+            Level {user.level} • {user.exp} XP
+          </Text>
+        )}
         <Text style={styles.subtitle}>Coming soon: Interactive quest map</Text>
       </View>
     </SafeAreaView>
@@ -62,6 +70,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
+    marginBottom: 16,
+  },
+  userInfo: {
+    fontSize: 18,
+    color: '#FFFFFF',
     marginBottom: 16,
   },
   subtitle: {

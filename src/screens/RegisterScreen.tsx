@@ -18,7 +18,6 @@ import {
 
 import { authService } from '../services/AuthService';
 
-// Define your navigation types
 type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
