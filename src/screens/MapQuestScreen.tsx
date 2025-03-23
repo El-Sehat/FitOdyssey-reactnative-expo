@@ -1,277 +1,290 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, CommonActions } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import * as Location from 'expo-location';
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-  StatusBar,
-} from 'react-native';
-import MapView, { PROVIDER_GOOGLE, UrlTile, Marker, Region } from 'react-native-maps';
+import { View, Text, SafeAreaView, TouchableOpacity, Alert, ActivityIndicator, Animated, Dimensions } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Marker, Circle } from 'react-native-maps';
+import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
+import io from 'socket.io-client';
+import { WSOCKET_SERVER_URL } from '../../.env.js';
 
-type RootStackParamList = {
-  SplashScreen: undefined;
-  Login: undefined;
-  Register: undefined;
-  MainApp: { screen?: string };
-  MapQuest: undefined;
+const SOCKET_SERVER_URL = WSOCKET_SERVER_URL;
+
+type Geofence = {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius: number;
 };
 
 const MapQuestScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const mapRef = useRef<MapView | null>(null);
-  const [mapLoading, setMapLoading] = useState(true);
-  const [mapError, setMapError] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
-  const [followingUser, setFollowingUser] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [socket, setSocket] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [geofences, setGeofences] = useState<Geofence[]>([]);
+  const [insideGeofence, setInsideGeofence] = useState<boolean>(false);
+  const [activeGeofence, setActiveGeofence] = useState<Geofence | null>(null);
+  
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const showModal = () => {
+    setModalVisible(true);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  };
+
+  const hideModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: Dimensions.get('window').height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setModalVisible(false));
+  };
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setPermissionDenied(true);
-        Alert.alert(
-          'Permission Denied',
-          'Please enable location services to use the map tracking feature.',
-          [{ text: 'OK' }],
-        );
+        Alert.alert('Permission Denied', 'Enable location to use the map.');
+        setLoading(false);
         return;
       }
 
-      const currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
+      const initialLocation = await Location.getCurrentPositionAsync({});
+      setLocation(initialLocation);
+      setLoading(false);
 
       const locationSubscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 10,
-          timeInterval: 5000,
-        },
+        { accuracy: Location.Accuracy.High, distanceInterval: 10, timeInterval: 5000 },
         (newLocation) => {
           setLocation(newLocation);
-          if (followingUser && mapRef.current) {
-            centerMapOnLocation(newLocation);
-          }
-        },
+          socket?.emit('check-location', {
+            latitude: newLocation.coords.latitude,
+            longitude: newLocation.coords.longitude,
+            userId: '123',
+          });
+        }
       );
 
-      return () => {
-        locationSubscription.remove();
-      };
+      return () => locationSubscription.remove();
     })();
-  }, [followingUser]);
 
-  const centerMapOnLocation = (locationObj: Location.LocationObject) => {
-    const region: Region = {
-      latitude: locationObj.coords.latitude,
-      longitude: locationObj.coords.longitude,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
-    };
-
-    mapRef.current?.animateToRegion(region, 500);
-  };
-
-  const handleRecenterMap = () => {
-    if (location) {
-      setFollowingUser(true);
-      centerMapOnLocation(location);
+    const newSocket = io(SOCKET_SERVER_URL,{
+      path: '/api/map-be/socket.io'
     }
-  };
 
-  const initialRegion = {
-    latitude: location?.coords.latitude || -6.2088,
-    longitude: location?.coords.longitude || 106.8456,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  };
+);
+    
+    newSocket.on('geofence-alert', (data) => {
+      setInsideGeofence(true);
+      showModal(); 
+    });
 
-  const navigateToTab = (tabName: string) => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'MainApp',
-            params: { screen: tabName },
-          },
-        ],
-      }),
-    );
+    newSocket.on('geofence-data', (geofenceData: Geofence[]) => {
+      console.log('Received geofences:', geofenceData);
+      setGeofences(geofenceData);
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Socket connected, requesting geofences');
+      newSocket.emit('get-geofences');
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (location && geofences.length > 0) {
+      const userLat = location.coords.latitude;
+      const userLng = location.coords.longitude;
+      
+      for (const fence of geofences) {
+        const distance = getDistanceFromLatLonInM(
+          userLat, 
+          userLng, 
+          fence.latitude, 
+          fence.longitude
+        );
+        
+        if (distance <= fence.radius) {
+          setInsideGeofence(true);
+          setActiveGeofence(fence);
+          showModal(); 
+          return;
+        }
+      }
+      
+      if (insideGeofence) {
+        hideModal(); 
+      }
+      
+      setInsideGeofence(false);
+      setActiveGeofence(null);
+    }
+  }, [location, geofences]);
+
+  const getDistanceFromLatLonInM = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3;
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-900">
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-
-      <View className="flex-1 overflow-hidden">
-        {mapLoading && (
-          <View className="absolute z-10 flex h-full w-full items-center justify-center bg-gray-800/50">
-            <ActivityIndicator size="large" color="#ec4899" />
-            <Text className="mt-2 text-white">Loading map...</Text>
+      <View className="flex-row items-center justify-center px-4 pt-4 pb-2">
+        <Text className="text-white text-lg font-bold">Map Quest</Text>
+        {activeGeofence && (
+          <View className="ml-4 px-2 py-1 bg-pink-600 rounded-md">
+            <Text className="text-white text-xs">In: {activeGeofence.name}</Text>
           </View>
         )}
+      </View>
 
-        {mapError ? (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-lg text-white">Unable to load map</Text>
-            <TouchableOpacity
-              className="mt-4 rounded-full bg-pink-500 px-4 py-2"
-              onPress={() => setMapError(false)}>
-              <Text className="text-white">Retry</Text>
-            </TouchableOpacity>
+      <View className="flex-1 overflow-hidden">
+        {loading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#ec4899" />
+            <Text className="text-white mt-4">Getting your location...</Text>
           </View>
-        ) : (
+        ) : location ? (
           <MapView
             ref={mapRef}
             provider={PROVIDER_GOOGLE}
-            style={styles.map}
-            initialRegion={initialRegion}
-            onMapReady={() => setMapLoading(false)}
-            mapType="standard"
-            showsUserLocation
-            showsMyLocationButton={false}
-            followsUserLocation={followingUser}
-            onPanDrag={() => setFollowingUser(false)}>
-            <UrlTile
-              urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maximumZ={19}
-              flipY={false}
-              tileSize={256}
-              zIndex={-1}
+            style={{ width: '100%', height: '100%' }}
+            initialRegion={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+            showsUserLocation={true}
+          >
+            <Marker
+              coordinate={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }}
+              title="You are here"
+              pinColor="#ec4899"
             />
-
-            {location && (
-              <Marker
-                coordinate={{
-                  latitude: location.coords.latitude,
-                  longitude: location.coords.longitude,
-                }}
-                title="You are here"
-                pinColor="#ec4899"
-              />
-            )}
+            
+            {geofences.map((geofence) => (
+              <React.Fragment key={geofence.id}>
+                <Circle
+                  center={{
+                    latitude: geofence.latitude,
+                    longitude: geofence.longitude,
+                  }}
+                  radius={geofence.radius}
+                  strokeWidth={2}
+                  strokeColor={activeGeofence?.id === geofence.id ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 128, 255, 0.8)"}
+                  fillColor={activeGeofence?.id === geofence.id ? "rgba(255, 0, 0, 0.2)" : "rgba(0, 128, 255, 0.2)"}
+                />
+                <Marker
+                  coordinate={{
+                    latitude: geofence.latitude,
+                    longitude: geofence.longitude,
+                  }}
+                  title={geofence.name}
+                  pinColor="#0088ff"
+                />
+              </React.Fragment>
+            ))}
           </MapView>
-        )}
-
-        <TouchableOpacity
-          style={styles.recenterButton}
-          onPress={handleRecenterMap}
-          className="absolute bottom-24 right-6 rounded-full bg-pink-500 p-3 shadow-lg">
-          <Ionicons name="locate" size={24} color="white" />
-        </TouchableOpacity>
-
-        {/* Permission Denied Message */}
-        {permissionDenied && (
-          <View className="absolute bottom-24 left-4 right-4 rounded-lg bg-red-500/80 p-3">
-            <Text className="text-center text-white">
-              Location permission required to track your position
-            </Text>
+        ) : (
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-white">Unable to get location</Text>
           </View>
         )}
-      </View>
 
-      {/* Custom Tab Navigator */}
-      <View style={styles.tabNavigatorContainer}>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: '#161643',
-            borderRadius: 30,
-            height: 70,
-            marginHorizontal: 10,
-            marginBottom: 10,
-            alignItems: 'center',
-            paddingHorizontal: 15,
-          }}>
+        {location && (
           <TouchableOpacity
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => navigateToTab('Beranda')}>
-            <Text style={{ color: '#6B7280', fontSize: 14 }}>Beranda</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => navigateToTab('Quest')}>
-            <Text style={{ color: '#6B7280', fontSize: 14 }}>Quest</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{
-              width: 70,
-              height: 70,
-              backgroundColor: '#FF3B5F',
-              borderRadius: 35,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginHorizontal: 12,
-              shadowColor: '#FF3B5F',
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.5,
-              shadowRadius: 10,
-              elevation: 8,
-            }}
+            style={{ position: 'absolute', bottom: 24, right: 16, backgroundColor: '#ec4899', padding: 12, borderRadius: 50 }}
             onPress={() => {
-            }}>
-            <View
-              style={{
-                width: 0,
-                height: 0,
-                borderTopWidth: 12,
-                borderBottomWidth: 12,
-                borderLeftWidth: 20,
-                borderStyle: 'solid',
-                borderTopColor: 'transparent',
-                borderBottomColor: 'transparent',
-                borderLeftColor: 'white',
-                marginLeft: 5,
-              }}
-            />
+              if (location) {
+                mapRef.current?.animateToRegion({
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                });
+              }
+            }}
+          >
+            <Ionicons name="locate" size={24} color="white" />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => navigateToTab('Aktivitas')}>
-            <Text style={{ color: '#6B7280', fontSize: 14 }}>Aktivitas</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => navigateToTab('Shop')}>
-            <Text style={{ color: '#6B7280', fontSize: 14 }}>Shop</Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </View>
+
+      {modalVisible && (
+        <Animated.View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#1e293b',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.3,
+            shadowRadius: 3,
+            zIndex: 1000,
+            transform: [{ translateY: slideAnim }]
+          }}
+        >
+          <View className="items-center mb-4">
+            <View className="w-16 h-1.5 bg-gray-500 rounded-full" />
+          </View>
+
+          <View className="items-center mb-6">
+            <Text className="text-white text-xl font-bold mb-2">
+              {activeGeofence ? `You're in ${activeGeofence.name}!` : "You're in a hotspot!"}
+            </Text>
+            <Text className="text-gray-300 text-center">
+              You've discovered a fitness challenge zone. Ready to begin your challenge?
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            className="bg-pink-600 py-3 px-6 rounded-full items-center"
+            onPress={() => {
+              Alert.alert("Challenge Started!", "Good luck on your fitness journey!");
+              hideModal();
+            }}
+          >
+            <Text className="text-white font-bold text-lg">START CHALLENGE</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            className="mt-3 py-3 px-6 items-center"
+            onPress={hideModal}
+          >
+            <Text className="text-gray-400">Maybe later</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  map: {
-    width: '100%',
-    height: '100%',
-  },
-  recenterButton: {
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  tabNavigatorContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
-  },
-});
 
 export default MapQuestScreen;
