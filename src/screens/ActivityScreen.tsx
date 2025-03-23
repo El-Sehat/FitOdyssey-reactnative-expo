@@ -224,13 +224,14 @@ const ActivityScreen = () => {
               <ActivityCard
                 username={activity.user?.name || user?.name || 'Unknown User'}
                 timeAgo={getRelativeTime(activity.created_at)}
-                location={activity.title || 'Activity'} // Using title as location
+                location={activity.title || 'Activity'}
                 content={activity.caption || ''}
                 questCount={user?.level || 0}
                 setsCount={Math.floor((activity.likes_count || 0) * 2)}
                 xpGained={Math.floor((activity.likes_count || 0) * 100)}
                 likes={activity.likes_count || 0}
                 comments={activity.comments_count || 0}
+                imageUrl={activity.picUrl}
                 onLike={() => handleLike(activity.id)}
                 onComment={() => console.log(`Comment pressed for activity ${activity.id}`)}
                 onShare={() => console.log(`Share pressed for activity ${activity.id}`)}
