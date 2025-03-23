@@ -123,6 +123,83 @@ class QuestService {
 
     return activeQuests.length > 0 ? activeQuests[0] : null;
   }
+
+  async completeQuest(questId: number): Promise<any> {
+    try {
+      const user = await AsyncStorage.getItem('user');
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      const workouts = await this.getQuestWorkouts(questId);
+
+      for (const workout of workouts) {
+        if (!workout.is_finished) {
+          await this.markWorkoutComplete(questId, workout.id);
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error completing quest:', error);
+      throw error;
+    }
+  }
+
+  async markWorkoutComplete(questId: number, workoutId: number): Promise<any> {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const user = await AsyncStorage.getItem('user');
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const userId = JSON.parse(user).id;
+      const url = `${API_URL}/quests/workouts/${questId}/${workoutId}/${userId}`;
+
+      console.log('Marking workout complete at URL:', url);
+
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startTime: new Date().toISOString(),
+          endTime: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`Failed to mark workout as complete: ${response.status}`);
+      }
+
+      const allWorkoutsCompleted = await this.areAllWorkoutsCompleted(questId);
+
+      if (allWorkoutsCompleted) {
+        console.log(`All workouts for quest ${questId} completed!`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error marking workout as complete:', error);
+      throw error;
+    }
+  }
+
+  async areAllWorkoutsCompleted(questId: number): Promise<boolean> {
+    try {
+      const workouts = await this.getQuestWorkouts(questId);
+      return workouts.every((workout) => workout.is_finished);
+    } catch (error) {
+      console.error('Error checking if all workouts are completed:', error);
+      return false;
+    }
+  }
 }
 
 export const questService = new QuestService();

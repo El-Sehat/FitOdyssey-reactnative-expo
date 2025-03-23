@@ -259,6 +259,7 @@ const HomeScreen = () => {
                 xpGained={Math.floor((post.likes_count || 0) * 100)}
                 likes={post.likes_count || 0}
                 comments={post.comments_count || 0}
+                imageUrl={post.picUrl}
                 onLike={() => handleLike(post.id)}
                 onComment={() => console.log('Comment pressed')}
                 onShare={() => console.log('Share pressed')}

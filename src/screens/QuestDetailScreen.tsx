@@ -1,8 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import StartButton from '~/components/StartButton';
 import { useAuth } from '~/context/AuthContext';
 import { RootStackParamList } from '~/navigation';
+import { feedService } from '~/services/FeedService';
 import { questService, QuestWorkout } from '~/services/QuestService';
 
 type QuestDetailScreenRouteProp = RouteProp<RootStackParamList, 'QuestDetail'>;
@@ -31,25 +32,75 @@ const QuestDetailScreen = () => {
   const [workouts, setWorkouts] = useState<QuestWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedExists, setFeedExists] = useState(false);
+  const [checkingFeed, setCheckingFeed] = useState(false);
 
-  useEffect(() => {
-    const fetchWorkouts = async () => {
-      if (!user) return;
+  const [isQuestCompleted, setIsQuestCompleted] = useState(
+    questService.hasCompletedQuest(quest, user?.id || 0),
+  );
 
-      try {
-        setLoading(true);
-        const workoutsData = await questService.getQuestWorkouts(quest.id);
-        setWorkouts(workoutsData);
-      } catch (err: any) {
-        console.error('Failed to load workouts:', err);
-        setError(err.message || 'Failed to load workouts');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [completedWorkoutsCount, setCompletedWorkoutsCount] = useState(0);
+  const [totalWorkoutsCount, setTotalWorkoutsCount] = useState(0);
 
-    fetchWorkouts();
-  }, [quest.id, user]);
+  // Check if a feed post for this quest already exists
+  const checkExistingFeed = useCallback(async () => {
+    if (!user || !isQuestCompleted) return;
+
+    try {
+      setCheckingFeed(true);
+      const feeds = await feedService.getFeedPosts();
+
+      // Look for a feed that mentions this quest
+      const questFeed = feeds.find(
+        (feed) =>
+          feed.user_id === user.id &&
+          (feed.title.includes(quest.name) || feed.caption.includes(quest.name)),
+      );
+
+      setFeedExists(!!questFeed);
+    } catch (error) {
+      console.error('Error checking for existing feed:', error);
+    } finally {
+      setCheckingFeed(false);
+    }
+  }, [user, quest.name, isQuestCompleted]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchWorkouts = async () => {
+        if (!user) return;
+
+        try {
+          setLoading(true);
+
+          // Refresh the quest data to get the latest completion status
+          const questsData = await questService.getActiveQuests();
+          const updatedQuest = questsData.find((q) => q.id === quest.id);
+
+          // Update local isQuestCompleted state
+          if (updatedQuest) {
+            setIsQuestCompleted(questService.hasCompletedQuest(updatedQuest, user.id));
+          }
+
+          // Get updated workouts
+          const workoutsData = await questService.getQuestWorkouts(quest.id);
+          setWorkouts(workoutsData);
+
+          const completed = workoutsData.filter((w) => w.is_finished).length;
+          setCompletedWorkoutsCount(completed);
+          setTotalWorkoutsCount(workoutsData.length);
+        } catch (err: any) {
+          console.error('Failed to load workouts:', err);
+          setError(err.message || 'Failed to load workouts');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchWorkouts();
+      checkExistingFeed();
+    }, [quest.id, user, checkExistingFeed]),
+  );
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -67,7 +118,6 @@ const QuestDetailScreen = () => {
         {
           text: "Let's Go!",
           onPress: () => {
-            // Navigate to Exercise screen with quest data
             navigation.navigate('Exercise', {
               quest,
             });
@@ -78,7 +128,13 @@ const QuestDetailScreen = () => {
     );
   };
 
-  // Format dates for display
+  const handleCreateFeed = () => {
+    navigation.navigate('FeedCreation', {
+      questName: quest.name,
+      questExp: quest.exp,
+    });
+  };
+
   const startDate = new Date(quest.start_date).toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
@@ -94,7 +150,6 @@ const QuestDetailScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       {/* Header */}
       <View className="bg-white px-4 py-3">
         <View className="flex-row items-center">
@@ -109,7 +164,6 @@ const QuestDetailScreen = () => {
           </View>
         </View>
       </View>
-
       <ScrollView className="flex-1">
         {/* Quest Header Card with updated gradient colors */}
         <LinearGradient
@@ -135,12 +189,21 @@ const QuestDetailScreen = () => {
 
             {/* Right side: start button */}
             <View className="justify-center">
-              <StartButton
-                size={70}
-                onPress={handleStartWorkout}
-                colors={['#EF4444', '#DC2626', '#B91C1C']}
-                shadowColor="#DC2626"
-              />
+              {isQuestCompleted ? (
+                <View className="items-center">
+                  <View className="h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                    <FontAwesome5 name="check" size={24} color="white" />
+                  </View>
+                  <Text className="mt-2 text-center text-white">Completed</Text>
+                </View>
+              ) : (
+                <StartButton
+                  size={70}
+                  onPress={handleStartWorkout}
+                  colors={['#EF4444', '#DC2626', '#B91C1C']}
+                  shadowColor="#DC2626"
+                />
+              )}
             </View>
           </View>
 
@@ -163,6 +226,47 @@ const QuestDetailScreen = () => {
             </View>
           </View>
         </LinearGradient>
+
+        <View className="mx-auto mt-2 w-[90%]">
+          <View className="flex-row justify-between">
+            <Text className="text-sm text-gray-600">Progress</Text>
+            <Text className="text-sm font-bold text-purple-800">
+              {completedWorkoutsCount}/{totalWorkoutsCount} workouts completed
+            </Text>
+          </View>
+          <View className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+            <View
+              className="h-full bg-purple-800"
+              style={{
+                width: `${totalWorkoutsCount > 0 ? (completedWorkoutsCount / totalWorkoutsCount) * 100 : 0}%`,
+              }}
+            />
+          </View>
+        </View>
+
+        {/* Share to Activity button - only show for completed quests */}
+        {isQuestCompleted && (
+          <View className="mx-4 mt-4">
+            <TouchableOpacity
+              className={`flex-row items-center justify-center rounded-xl p-3 ${
+                feedExists ? 'bg-gray-300' : 'bg-purple-800'
+              }`}
+              onPress={handleCreateFeed}
+              disabled={feedExists || checkingFeed}>
+              {checkingFeed ? (
+                <ActivityIndicator size="small" color={feedExists ? '#666' : 'white'} />
+              ) : (
+                <>
+                  <FontAwesome5 name="share-alt" size={16} color={feedExists ? '#666' : 'white'} />
+                  <Text
+                    className={`ml-2 font-medium ${feedExists ? 'text-gray-600' : 'text-white'}`}>
+                    {feedExists ? 'Already Shared to Activity' : 'Share to Activity Feed'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Deksripsi */}
         <View className="mx-4 mt-6">

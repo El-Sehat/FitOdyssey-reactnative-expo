@@ -43,7 +43,7 @@ const QuestCard: React.FC<QuestCardProps> = ({
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={handlePress} disabled={!questData}>
       <LinearGradient
-        colors={isCompleted ? ['#166534', '#16A34A', '#166534'] : ['#391484', '#4A1687', '#591E89']}
+        colors={['#391484', '#4A1687', '#591E89']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="mt-6 overflow-hidden rounded-[24px] px-8 py-6 shadow-md">
@@ -62,8 +62,7 @@ const QuestCard: React.FC<QuestCardProps> = ({
               </View>
             )}
           </View>
-          <View
-            className={`h-16 w-16 items-center justify-center rounded-full border-white ${isCompleted ? 'bg-green-500' : 'bg-red-400'}`}>
+          <View className="h-16 w-16 items-center justify-center rounded-full border-white bg-red-400">
             <MaterialCommunityIcons
               name={isCompleted ? 'check' : 'lightning-bolt-outline'}
               size={28}

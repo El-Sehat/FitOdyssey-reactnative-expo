@@ -74,7 +74,6 @@ class FeedService {
     }
   }
 
-  // Comment on a post
   async addComment(feedId: number, userId: number, comment: string): Promise<any> {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -98,20 +97,25 @@ class FeedService {
     }
   }
 
-  // Create a new feed post
   async createPost(formData: FormData): Promise<any> {
     try {
       const token = await AsyncStorage.getItem('token');
+
+      console.log('Creating post with formData:', formData);
+
       const response = await fetch(`${FEED_API_URL}/feed`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
+          // Don't set Content-Type for multipart/form-data, it will be set automatically
         },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create post');
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Failed to create post: ${response.status}`);
       }
 
       return await response.json();

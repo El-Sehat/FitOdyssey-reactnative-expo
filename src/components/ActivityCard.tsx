@@ -1,6 +1,6 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 
 interface ActivityCardProps {
   username: string;
@@ -12,6 +12,7 @@ interface ActivityCardProps {
   xpGained: number;
   likes: number;
   comments: number;
+  imageUrl?: string;
   onLike: () => void;
   onComment: () => void;
   onShare: () => void;
@@ -27,6 +28,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   xpGained,
   likes,
   comments,
+  imageUrl,
   onLike,
   onComment,
   onShare,
@@ -51,6 +53,13 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
       {/* Post content */}
       <View className="p-4">
         <Text className="mb-4 text-gray-700">{content}</Text>
+
+        {/* Image if available */}
+        {imageUrl && (
+          <View className="mb-4 overflow-hidden rounded-xl">
+            <Image source={{ uri: imageUrl }} className="h-48 w-full" resizeMode="cover" />
+          </View>
+        )}
 
         {/* Stats */}
         <View className="mb-4 flex-row justify-between rounded-xl bg-gray-50 p-3">

@@ -9,6 +9,8 @@ import {
   RefreshControl,
   Alert,
   TouchableOpacity,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,6 +26,10 @@ const ActivityScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [isPostModalVisible, setIsPostModalVisible] = useState(false);
+  const [newPostText, setNewPostText] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
 
   // Function to fetch user's activities
   const fetchUserActivities = useCallback(async () => {
@@ -135,10 +141,39 @@ const ActivityScreen = () => {
     }
   };
 
+  const handleDirectPost = async () => {
+    if (!user || !newPostText.trim()) {
+      setIsPostModalVisible(false);
+      return;
+    }
+
+    try {
+      setIsPosting(true);
+
+      const formData = new FormData();
+      formData.append('user_id', String(user.id));
+      formData.append('title', 'Fitness Update');
+      formData.append('caption', newPostText);
+
+      await feedService.createPost(formData);
+
+      // Refresh the feed
+      await fetchUserActivities();
+      setNewPostText('');
+      setIsPostModalVisible(false);
+
+      Alert.alert('Success', 'Your activity has been posted!');
+    } catch (error) {
+      console.error('Error posting activity:', error);
+      Alert.alert('Error', 'Failed to post activity. Please try again.');
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-100">
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-
       {/* Header with proper spacing */}
       <View className="mb-2 border-b border-gray-200 bg-white px-6 py-4">
         <View className="flex-row items-center justify-between">
@@ -149,7 +184,6 @@ const ActivityScreen = () => {
           </View>
         </View>
       </View>
-
       {/* Content with RefreshControl */}
       <ScrollView
         className="flex-1"
@@ -205,6 +239,51 @@ const ActivityScreen = () => {
           ))}
         </View>
       </ScrollView>
+      <Modal
+        visible={isPostModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsPostModalVisible(false)}>
+        <View className="flex-1 justify-end">
+          <View className="rounded-t-3xl bg-white p-4">
+            <Text className="mb-4 text-center text-lg font-bold">Post New Activity</Text>
+
+            <TextInput
+              className="min-h-[100px] rounded-xl border border-gray-300 p-4"
+              multiline
+              placeholder="What's your fitness update?"
+              value={newPostText}
+              onChangeText={setNewPostText}
+            />
+
+            <View className="mt-4 flex-row justify-between">
+              <TouchableOpacity
+                className="rounded-xl bg-gray-200 px-6 py-3"
+                onPress={() => setIsPostModalVisible(false)}>
+                <Text>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="rounded-xl bg-purple-800 px-6 py-3"
+                onPress={handleDirectPost}
+                disabled={isPosting}>
+                {isPosting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white">Post</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      // Add a "Post New Activity" floating button (add this just above the closing ScrollView tag)
+      <TouchableOpacity
+        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-purple-800"
+        style={{ elevation: 5 }}
+        onPress={() => setIsPostModalVisible(true)}>
+        <AntDesign name="plus" size={24} color="white" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

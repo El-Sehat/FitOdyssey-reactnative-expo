@@ -61,7 +61,7 @@ const ShopScreen = () => {
       return false;
     }
 
-    // Then filter by search text
+    // filter by search text
     if (searchText && !item.title.toLowerCase().includes(searchText.toLowerCase())) {
       return false;
     }

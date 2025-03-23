@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RootStackParamList } from '~/navigation';
+import { questService } from '~/services/QuestService';
 
 type ExerciseScreenRouteProp = RouteProp<RootStackParamList, 'Exercise'>;
 type ExerciseScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -36,17 +37,17 @@ const ExerciseScreen = () => {
   const [exerciseCompleted, setExerciseCompleted] = useState(false);
   const [countdownActive, setCountdownActive] = useState(false);
 
-  // Request permissions on component mount
+  // Activity sharing states
+  const [isPostingActivity] = useState(false);
+
   useEffect(() => {
     requestPermission();
   }, []);
 
-  // Timer for countdown before exercise
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (exerciseStarted && countdownActive) {
-      // Start a countdown timer
       setTimer(3);
       interval = setInterval(() => {
         setTimer((prevTimer) => {
@@ -66,7 +67,6 @@ const ExerciseScreen = () => {
     };
   }, [exerciseStarted, countdownActive]);
 
-  // Timer for exercise duration
   useEffect(() => {
     let exerciseInterval: NodeJS.Timeout;
 
@@ -116,24 +116,71 @@ const ExerciseScreen = () => {
     setTimer(0);
   };
 
-  const completeExercise = () => {
-    setExerciseCompleted(true);
+  const completeExercise = async () => {
+    try {
+      setExerciseCompleted(true);
 
-    // Display success message
-    Alert.alert(
-      'Exercise Completed',
-      'Congratulations! You have completed this exercise successfully.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Here you would update the quest status as completed
-            // For example: updateQuestStatus(quest.id, 'completed');
-            navigation.goBack();
+      if (quest && quest.id) {
+        try {
+          // First get the workouts for this quest
+          const workouts = await questService.getQuestWorkouts(quest.id);
+
+          if (workouts.length > 0) {
+            // Find the first incomplete workout
+            const incompleteWorkout = workouts.find((w) => !w.is_finished);
+
+            if (incompleteWorkout) {
+              // Mark this workout as complete (this will also check if all workouts are completed)
+              await questService.markWorkoutComplete(quest.id, incompleteWorkout.id);
+              console.log(
+                `Successfully completed workout ${incompleteWorkout.id} for quest ${quest.id}`,
+              );
+
+              // Re-check if all workouts are now complete for UI feedback
+              const allCompleted = await questService.areAllWorkoutsCompleted(quest.id);
+              if (allCompleted) {
+                console.log(`All workouts for quest ${quest.id} are now complete!`);
+              }
+            } else {
+              console.log('No incomplete workouts found for this quest');
+            }
+          } else {
+            console.log('No workouts found for this quest');
+          }
+        } catch (completionError) {
+          console.warn('Could not mark workout as completed:', completionError);
+          // Continue with the flow even if workout completion fails
+        }
+      }
+
+      // Show activity sharing option
+      Alert.alert(
+        'Exercise Completed',
+        'Congratulations! You have completed this exercise successfully.',
+        [
+          {
+            text: 'Share to Activity',
+            onPress: () => {
+              // Navigate to FeedCreation screen instead of directly posting
+              navigation.navigate('FeedCreation', {
+                questName: quest.name,
+                questExp: quest.exp,
+              });
+            },
           },
-        },
-      ],
-    );
+          {
+            text: 'Done',
+            onPress: () => {
+              navigation.goBack();
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      console.error('Error completing exercise:', error);
+      Alert.alert('Error', 'Failed to complete the exercise. Please try again.');
+      navigation.goBack();
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -218,6 +265,14 @@ const ExerciseScreen = () => {
           )}
         </View>
       </CameraView>
+
+      {/* Loading overlay when posting activity */}
+      {isPostingActivity && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.overlayText}>Sharing your activity...</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -333,6 +388,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    zIndex: 1000,
+  },
+  overlayText: {
+    color: 'white',
+    marginTop: 10,
+    fontSize: 16,
   },
 });
 

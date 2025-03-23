@@ -89,6 +89,14 @@ const QuestScreen = () => {
 
   const todayQuest = questService.getTodayQuest(quests);
 
+  // Get incomplete quests excluding today's quest
+  const incompleteQuests = quests.filter(
+    (q) => !questService.hasCompletedQuest(q, user?.id || 0) && q.id !== todayQuest?.id,
+  );
+
+  // Get completed quests
+  const completedQuests = quests.filter((q) => questService.hasCompletedQuest(q, user?.id || 0));
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
@@ -138,30 +146,45 @@ const QuestScreen = () => {
             </View>
           ) : null}
 
-          {/* Other Quests */}
-          {!isLoading && quests.length > 0 && (
-            <Text className="mt-6 text-lg font-bold">Quest Lainnya</Text>
-          )}
-
-          {!isLoading &&
-            !error &&
-            quests
-              .filter((q) => q.id !== todayQuest?.id)
-              .map((quest) => (
+          {/* Incomplete Quests Section */}
+          {!isLoading && incompleteQuests.length > 0 && (
+            <>
+              <Text className="mt-6 text-lg font-bold">Quest Lainnya</Text>
+              {incompleteQuests.map((quest) => (
                 <QuestCard
                   key={quest.id}
                   date={formatQuestDate(quest.start_date, quest.end_date)}
                   title={quest.name}
                   description={quest.description}
-                  quest={
-                    questService.hasCompletedQuest(quest, user?.id || 0) ? '✓' : quest.id.toString()
-                  }
+                  quest={quest.id.toString()}
                   sets={quest.workout_count?.toString() || '0'}
                   xp={`+${quest.exp}`}
                   questData={quest}
-                  isCompleted={questService.hasCompletedQuest(quest, user?.id || 0)}
+                  isCompleted={false}
                 />
               ))}
+            </>
+          )}
+
+          {/* Completed Quests Section */}
+          {!isLoading && completedQuests.length > 0 && (
+            <>
+              <Text className="mt-8 text-lg font-bold">Quest Selesai</Text>
+              {completedQuests.map((quest) => (
+                <QuestCard
+                  key={quest.id}
+                  date={formatQuestDate(quest.start_date, quest.end_date)}
+                  title={quest.name}
+                  description={quest.description}
+                  quest="✓"
+                  sets={quest.workout_count?.toString() || '0'}
+                  xp={`+${quest.exp}`}
+                  questData={quest}
+                  isCompleted
+                />
+              ))}
+            </>
+          )}
 
           {/* No Quests State */}
           {!isLoading && !error && quests.length === 0 && (

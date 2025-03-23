@@ -5,6 +5,7 @@ import React from 'react';
 import TabNavigator from './TabNavigator';
 
 import ExerciseScreen from '~/screens/ExerciseScreen';
+import FeedCreationScreen from '~/screens/FeedCreationScreen';
 import LoginScreen from '~/screens/LoginScreen';
 import MapQuestScreen from '~/screens/MapQuestScreen';
 import ProfileScreen from '~/screens/ProfileScreen';
@@ -26,6 +27,10 @@ export type RootStackParamList = {
   Exercise: {
     quest: Quest;
   };
+  FeedCreation: {
+    questName?: string;
+    questExp?: number;
+  };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,6 +47,7 @@ export default function Navigation() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="QuestDetail" component={QuestDetailScreen} />
         <Stack.Screen name="Exercise" component={ExerciseScreen} />
+        <Stack.Screen name="FeedCreation" component={FeedCreationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
