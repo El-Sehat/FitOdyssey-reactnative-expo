@@ -4,11 +4,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
+import StartButton from '~/components/StartButton';
 import ActivityScreen from '~/screens/ActivityScreen';
 import HomeScreen from '~/screens/HomeScreen';
+import MapQuestScreen from '~/screens/MapQuestScreen';
 import QuestScreen from '~/screens/QuestScreen';
 import ShopScreen from '~/screens/ShopScreen';
-import MapQuestScreen from '~/screens/MapQuestScreen';
 
 type RootStackParamList = {
   SplashScreen: undefined;
@@ -16,6 +17,7 @@ type RootStackParamList = {
   Register: undefined;
   MainApp: { screen?: string };
   MapQuest: undefined;
+  Profile: undefined;
 };
 
 export type TabParamList = {
@@ -66,39 +68,9 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
 
         if (route.name === 'StartButton') {
           return (
-            <TouchableOpacity
-              key={index}
-              style={{
-                width: 70,
-                height: 70,
-                backgroundColor: '#FF3B5F',
-                borderRadius: 35,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginHorizontal: 12,
-                shadowColor: '#FF3B5F',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.5,
-                shadowRadius: 10,
-                elevation: 8,
-              }}
-              onPress={onPress}>
-              {/* Ini play button ditengah */}
-              <View
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderTopWidth: 12,
-                  borderBottomWidth: 12,
-                  borderLeftWidth: 20,
-                  borderStyle: 'solid',
-                  borderTopColor: 'transparent',
-                  borderBottomColor: 'transparent',
-                  borderLeftColor: 'white',
-                  marginLeft: 5,
-                }}
-              />
-            </TouchableOpacity>
+            <View key={index} style={{ marginHorizontal: 12 }}>
+              <StartButton size={70} onPress={onPress} />
+            </View>
           );
         }
 
@@ -137,13 +109,14 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
 const BottomTabNavigator = () => {
   const route = useRoute();
   const tabNavigation = useNavigation();
-  
-  // Handle navigation to specific tab from params
   useEffect(() => {
     if (route.params && 'screen' in route.params) {
       const screenName = route.params.screen;
-      if (screenName && ['Beranda', 'Quest', 'Aktivitas', 'Shop'].includes(screenName)) {
-        // @ts-ignore - We know this is a valid screen name
+      if (
+        typeof screenName === 'string' &&
+        ['Beranda', 'Quest', 'Aktivitas', 'Shop'].includes(screenName)
+      ) {
+        // @ts-ignore
         tabNavigation.navigate(screenName);
       }
     }

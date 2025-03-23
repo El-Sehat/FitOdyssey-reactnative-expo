@@ -1,18 +1,56 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
+
+import { authService } from '../services/AuthService';
 
 type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   SplashScreen: undefined;
+  MainApp: undefined;
 };
 
 type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, 'SplashScreen'>;
 
 const SplashScreen = () => {
   const navigation = useNavigation<SplashScreenNavigationProp>();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const isAuthenticated = await authService.isAuthenticated();
+
+        if (isAuthenticated) {
+          const user = await authService.getCurrentUser();
+          if (user) {
+            navigation.replace('MainApp');
+            return;
+          }
+        }
+        setIsCheckingAuth(false);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsCheckingAuth(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      checkAuthStatus();
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
   const handleLoginPress = () => {
     navigation.navigate('Login');
@@ -24,7 +62,7 @@ const SplashScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       {/* Gambar atas */}
       <View className="h-[60%] w-full overflow-hidden">
@@ -50,16 +88,25 @@ const SplashScreen = () => {
 
         {/* Bagian Tombol */}
         <View className="my-[4rem] w-full">
-          <TouchableOpacity
-            className="mb-3 w-full items-center rounded-xl bg-purple-800 py-4"
-            onPress={handleLoginPress}>
-            <Text className="text-base font-bold text-white">Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="w-full items-center rounded-xl border border-gray-300 bg-white py-4"
-            onPress={handleRegisterPress}>
-            <Text className="text-base font-bold text-black">Register</Text>
-          </TouchableOpacity>
+          {isCheckingAuth ? (
+            <View className="items-center justify-center py-4">
+              <ActivityIndicator size="large" color="#9333EA" />
+              <Text className="mt-2 text-purple-800">Checking login status...</Text>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                className="mb-3 w-full items-center rounded-xl bg-purple-800 py-4"
+                onPress={handleLoginPress}>
+                <Text className="text-base font-bold text-white">Login</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="w-full items-center rounded-xl border border-gray-300 bg-white py-4"
+                onPress={handleRegisterPress}>
+                <Text className="text-base font-bold text-black">Register</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </SafeAreaView>

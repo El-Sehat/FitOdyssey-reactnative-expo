@@ -18,7 +18,6 @@ import {
 
 import { authService } from '../services/AuthService';
 
-// Define your navigation types
 type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
@@ -71,7 +70,7 @@ const Register = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1">

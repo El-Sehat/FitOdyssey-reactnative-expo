@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 
@@ -9,13 +10,22 @@ interface ShopItemCardProps {
 
 const ShopItemCard: React.FC<ShopItemCardProps> = ({ image, price, title }) => {
   return (
-    <View className="m-2 rounded-xl bg-white p-4 shadow-md">
-      <Image source={image} className="h-40 w-full rounded-xl" resizeMode="contain" />
-      <Text className="mt-2 text-lg font-bold">{price}</Text>
-      <Text className="text-gray-500">{title}</Text>
-      <TouchableOpacity className="mt-2 items-center rounded-full bg-blue-500 p-2">
-        <Text className="text-white">+</Text>
-      </TouchableOpacity>
+    <View className="overflow-hidden rounded-xl bg-white shadow-sm">
+      <Image source={image} className="h-32 w-full" resizeMode="cover" />
+
+      <View className="p-3">
+        <Text className="font-medium text-purple-900" numberOfLines={1}>
+          {title}
+        </Text>
+
+        <View className="mt-1 flex-row items-center justify-between">
+          <Text className="font-bold text-gray-800">{price}</Text>
+
+          <TouchableOpacity className="h-8 w-8 items-center justify-center rounded-full bg-purple-800">
+            <Feather name="shopping-cart" size={16} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
