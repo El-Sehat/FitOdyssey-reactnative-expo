@@ -1,24 +1,21 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
 import ActivityScreen from '~/screens/ActivityScreen';
 import HomeScreen from '~/screens/HomeScreen';
 import QuestScreen from '~/screens/QuestScreen';
 import ShopScreen from '~/screens/ShopScreen';
+import MapQuestScreen from '~/screens/MapQuestScreen';
 
 type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  MainApp: undefined;
+  MainApp: { screen?: string };
   MapQuest: undefined;
-};
-
-const PlayButtonComponent = () => {
-  return <View />;
 };
 
 export type TabParamList = {
@@ -138,6 +135,20 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
 };
 
 const BottomTabNavigator = () => {
+  const route = useRoute();
+  const tabNavigation = useNavigation();
+  
+  // Handle navigation to specific tab from params
+  useEffect(() => {
+    if (route.params && 'screen' in route.params) {
+      const screenName = route.params.screen;
+      if (screenName && ['Beranda', 'Quest', 'Aktivitas', 'Shop'].includes(screenName)) {
+        // @ts-ignore - We know this is a valid screen name
+        tabNavigation.navigate(screenName);
+      }
+    }
+  }, [route.params]);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -147,7 +158,7 @@ const BottomTabNavigator = () => {
       tabBar={(props) => <BottomNavBar {...props} />}>
       <Tab.Screen name="Beranda" component={HomeScreen} />
       <Tab.Screen name="Quest" component={QuestScreen} />
-      <Tab.Screen name="StartButton" component={PlayButtonComponent} />
+      <Tab.Screen name="StartButton" component={MapQuestScreen} />
       <Tab.Screen name="Aktivitas" component={ActivityScreen} />
       <Tab.Screen name="Shop" component={ShopScreen} />
     </Tab.Navigator>

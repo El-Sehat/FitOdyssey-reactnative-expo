@@ -1,74 +1,270 @@
-import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, UrlTile, Marker, Region } from 'react-native-maps';
+import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  SplashScreen: undefined;
+  Login: undefined;
+  Register: undefined;
+  MainApp: { screen?: string };
+  MapQuest: undefined;
+};
 
 const MapQuestScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const mapRef = useRef<MapView | null>(null);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [mapError, setMapError] = useState(false);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [followingUser, setFollowingUser] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setPermissionDenied(true);
+        Alert.alert(
+          'Permission Denied',
+          'Please enable location services to use the map tracking feature.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation);
+
+      const locationSubscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          distanceInterval: 10, 
+          timeInterval: 5000,
+        },
+        (newLocation) => {
+          setLocation(newLocation);
+          if (followingUser && mapRef.current) {
+            centerMapOnLocation(newLocation);
+          }
+        }
+      );
+
+      return () => {
+        locationSubscription.remove();
+      };
+    })();
+  }, [followingUser]);
+
+  const centerMapOnLocation = (locationObj: Location.LocationObject) => {
+    const region: Region = {
+      latitude: locationObj.coords.latitude,
+      longitude: locationObj.coords.longitude,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    };
+    
+    mapRef.current?.animateToRegion(region, 500);
+  };
+
+  const handleRecenterMap = () => {
+    if (location) {
+      setFollowingUser(true);
+      centerMapOnLocation(location);
+    }
+  };
+
+  const initialRegion = {
+    latitude: location?.coords.latitude || -6.2088, 
+    longitude: location?.coords.longitude || 106.8456,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
+
+  const navigateToTab = (tabName: string) => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          { 
+            name: 'MainApp',
+            params: { screen: tabName } 
+          },
+        ],
+      })
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Map Quest</Text>
-        <View style={styles.placeholder} />
+    <SafeAreaView className="flex-1 bg-gray-900">
+      {/* Simplified header without back button */}
+      <View className="flex-row items-center justify-center px-4 pt-4 pb-2">
+        <Text className="text-white text-lg font-bold">Map</Text>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>Map Quest</Text>
-        <Text style={styles.subtitle}>Coming soon: Interactive quest map</Text>
+      <View className="flex-1 overflow-hidden">
+        {mapLoading && (
+          <View className="absolute z-10 w-full h-full flex justify-center items-center bg-gray-800/50">
+            <ActivityIndicator size="large" color="#ec4899" />
+            <Text className="text-white mt-2">Loading map...</Text>
+          </View>
+        )}
+        
+        {mapError ? (
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-white text-lg">Unable to load map</Text>
+            <TouchableOpacity 
+              className="mt-4 bg-pink-500 py-2 px-4 rounded-full"
+              onPress={() => setMapError(false)}>
+              <Text className="text-white">Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <MapView
+            ref={mapRef}
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            initialRegion={initialRegion}
+            onMapReady={() => setMapLoading(false)}
+            mapType="standard"
+            showsUserLocation={true}
+            showsMyLocationButton={false} 
+            followsUserLocation={followingUser}
+            onPanDrag={() => setFollowingUser(false)}
+          >
+            <UrlTile 
+              urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maximumZ={19}
+              flipY={false}
+              tileSize={256}
+              zIndex={-1}
+            />
+            
+            {location && (
+              <Marker
+                coordinate={{
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                }}
+                title="You are here"
+                pinColor="#ec4899"
+              />
+            )}
+          </MapView>
+        )}
+        
+        <TouchableOpacity 
+          style={styles.recenterButton}
+          onPress={handleRecenterMap}
+          className="absolute bottom-24 right-6 bg-pink-500 rounded-full p-3 shadow-lg"
+        >
+          <Ionicons name="locate" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Permission Denied Message */}
+        {permissionDenied && (
+          <View className="absolute bottom-24 left-4 right-4 bg-red-500/80 p-3 rounded-lg">
+            <Text className="text-white text-center">Location permission required to track your position</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Custom Tab Navigator */}
+      <View style={styles.tabNavigatorContainer}>
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: '#161643',
+            borderRadius: 30,
+            height: 70,
+            marginHorizontal: 10,
+            marginBottom: 10,
+            alignItems: 'center',
+            paddingHorizontal: 15,
+          }}>
+          <TouchableOpacity
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => navigateToTab('Beranda')}>
+            <Text style={{ color: '#6B7280', fontSize: 14 }}>Beranda</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => navigateToTab('Quest')}>
+            <Text style={{ color: '#6B7280', fontSize: 14 }}>Quest</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{
+              width: 70,
+              height: 70,
+              backgroundColor: '#FF3B5F',
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginHorizontal: 12,
+              shadowColor: '#FF3B5F',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.5,
+              shadowRadius: 10,
+              elevation: 8,
+            }}
+            onPress={() => {/* Already on map, no action needed */}}>
+            <View
+              style={{
+                width: 0,
+                height: 0,
+                borderTopWidth: 12,
+                borderBottomWidth: 12,
+                borderLeftWidth: 20,
+                borderStyle: 'solid',
+                borderTopColor: 'transparent',
+                borderBottomColor: 'transparent',
+                borderLeftColor: 'white',
+                marginLeft: 5,
+              }}
+            />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => navigateToTab('Aktivitas')}>
+            <Text style={{ color: '#6B7280', fontSize: 14 }}>Aktivitas</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            onPress={() => navigateToTab('Shop')}>
+            <Text style={{ color: '#6B7280', fontSize: 14 }}>Shop</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#161643',
+  map: {
+    width: '100%',
+    height: '100%',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+  recenterButton: {
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    color: '#FF3B5F',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  placeholder: {
-    width: 50,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#cccccc',
-    textAlign: 'center',
-  },
+  tabNavigatorContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  }
 });
 
 export default MapQuestScreen;
