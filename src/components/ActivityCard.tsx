@@ -1,9 +1,4 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Feather from '@expo/vector-icons/Feather';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Fontisto from '@expo/vector-icons/Fontisto';
-import { LinearGradient } from 'expo-linear-gradient';
+import { FontAwesome5 } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
@@ -17,12 +12,12 @@ interface ActivityCardProps {
   xpGained: number;
   likes: number;
   comments: number;
-  onLike?: () => void;
-  onComment?: () => void;
-  onShare?: () => void;
+  onLike: () => void;
+  onComment: () => void;
+  onShare: () => void;
 }
 
-const ActivityCard = ({
+const ActivityCard: React.FC<ActivityCardProps> = ({
   username,
   timeAgo,
   location,
@@ -35,92 +30,61 @@ const ActivityCard = ({
   onLike,
   onComment,
   onShare,
-}: ActivityCardProps) => {
+}) => {
   return (
-    <View className="-mx-6 w-screen overflow-hidden rounded-t-[3rem] bg-white">
-      <View className="mx-6 flex flex-col justify-center">
-        <View className="mt-4 flex-row items-center">
-          <FontAwesome5 name="user-circle" size={40} color="black" />
-          <View className="ml-4 flex flex-col">
-            <Text className="text-xl font-bold">{username}</Text>
-            <Text className="text-xs text-gray-500">
-              {timeAgo} - {location}
-            </Text>
+    <View className="overflow-hidden rounded-2xl bg-white shadow-md">
+      {/* User info header */}
+      <View className="border-b border-gray-100 p-4">
+        <View className="flex-row items-center">
+          <FontAwesome5 name="user-circle" size={40} color="#9333EA" />
+          <View className="ml-3 flex-1">
+            <Text className="text-lg font-bold">{username}</Text>
+            <View className="flex-row items-center">
+              <Text className="text-sm text-gray-500">{timeAgo}</Text>
+              <Text className="mx-1 text-sm text-gray-400">•</Text>
+              <Text className="text-sm text-gray-500">{location}</Text>
+            </View>
           </View>
         </View>
-        <Text className="mt-4">{content}</Text>
       </View>
 
-      {/* Statistik */}
-      <LinearGradient
-        colors={['#391484', '#4A1687', '#591E89']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="mx-6 mt-6 overflow-hidden rounded-[24px] p-4 shadow-md">
-        <View className="flex-row items-center justify-between">
-          <View className="items-center pl-4">
-            <FontAwesome5 name="star" size={22} color="white" />
-            <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
-              QUEST
-            </Text>
-            <Text className="text-xl font-bold text-white">{questCount}</Text>
-          </View>
+      {/* Post content */}
+      <View className="p-4">
+        <Text className="mb-4 text-gray-700">{content}</Text>
 
-          <View className="h-12 w-px bg-gray-400 opacity-30" />
-
+        {/* Stats */}
+        <View className="mb-4 flex-row justify-between rounded-xl bg-gray-50 p-3">
           <View className="items-center">
-            <Fontisto name="world-o" size={22} color="white" />
-            <Text className="pt-1 text-sm font-bold tracking-wider text-gray-100 opacity-50">
-              SETS
-            </Text>
-            <Text className="text-xl font-bold text-white">{setsCount}</Text>
+            <Text className="text-xs text-gray-500">Quest</Text>
+            <Text className="text-lg font-bold text-purple-900">{questCount}</Text>
           </View>
-
-          <View className="h-12 w-px bg-gray-400 opacity-30" />
-
-          <View className="items-center pr-4">
-            <Text className="text-2xl font-black tracking-widest text-white">XP</Text>
-            <Text className="text-sm font-bold tracking-wider text-gray-100 opacity-50">
-              DIDAPAT
-            </Text>
-            <Text className="text-xl font-bold text-white">+{xpGained}</Text>
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">Sets</Text>
+            <Text className="text-lg font-bold text-purple-900">{setsCount}</Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">XP Gained</Text>
+            <Text className="text-lg font-bold text-purple-900">{xpGained}</Text>
           </View>
         </View>
-      </LinearGradient>
 
-      {/* Medals */}
-      <View className="mx-10 mt-6 flex-row justify-between gap-4">
-        <View className="items-center">
-          <FontAwesome5 name="medal" size={24} color="black" />
-          <Text className="mt-2 text-sm">Jumlah Kalori </Text>
-          <Text className="-mt-1 text-sm">Dibakar</Text>
-        </View>
-        <View className="items-center">
-          <FontAwesome5 name="medal" size={24} color="black" />
-          <Text className="mt-2 text-sm">Jumlah Set </Text>
-          <Text className="-mt-1 text-sm">Terbanyak</Text>
-        </View>
-        <View className="items-center">
-          <FontAwesome5 name="medal" size={24} color="black" />
-          <Text className="mt-2 text-sm">Quest selesai</Text>
-        </View>
-      </View>
-
-      <View className="mb-4 flex flex-row items-center justify-between pt-8">
-        <View className="mx-6 flex flex-row gap-8">
-          <TouchableOpacity className="flex flex-row items-center gap-2" onPress={onLike}>
-            <AntDesign name="hearto" size={16} color="black" />
-            <Text>{likes}</Text>
+        {/* Interaction buttons */}
+        <View className="flex-row justify-between border-t border-gray-100 pt-3">
+          <TouchableOpacity className="flex-row items-center" onPress={onLike}>
+            <FontAwesome5 name="heart" size={16} color="#9333EA" solid />
+            <Text className="ml-2 text-gray-600">{likes} Likes</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="flex flex-row items-center gap-2" onPress={onComment}>
-            <FontAwesome name="comment-o" size={16} color="black" />
-            <Text>{comments}</Text>
+
+          <TouchableOpacity className="flex-row items-center" onPress={onComment}>
+            <FontAwesome5 name="comment" size={16} color="#9333EA" />
+            <Text className="ml-2 text-gray-600">{comments} Comments</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center" onPress={onShare}>
+            <FontAwesome5 name="share" size={16} color="#9333EA" />
+            <Text className="ml-2 text-gray-600">Share</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity className="mx-6 flex flex-row items-center gap-2" onPress={onShare}>
-          <Feather name="share" size={16} color="black" />
-          <Text>Share</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );

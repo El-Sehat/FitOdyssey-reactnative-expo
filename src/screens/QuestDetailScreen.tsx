@@ -66,7 +66,12 @@ const QuestDetailScreen = () => {
         },
         {
           text: "Let's Go!",
-          onPress: () => console.log('User started workout for quest:', quest.id),
+          onPress: () => {
+            // Navigate to Exercise screen with quest data
+            navigation.navigate('Exercise', {
+              quest,
+            });
+          },
         },
       ],
       { cancelable: true },

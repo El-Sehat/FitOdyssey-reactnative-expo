@@ -182,7 +182,6 @@ const HomeScreen = () => {
               </View>
             </TouchableOpacity>
           </View>
-
           {/* Quest Hari Ini */}
           <View className="flex flex-row justify-between pt-4">
             <Text className="text-2xl font-extrabold text-violet-900">
@@ -190,7 +189,6 @@ const HomeScreen = () => {
             </Text>
             <Entypo name="dots-two-vertical" size={24} color="black" />
           </View>
-
           {/* Quest Loading State */}
           {questLoading && !refreshing && (
             <View className="items-center justify-center py-4">
@@ -198,7 +196,6 @@ const HomeScreen = () => {
               <Text className="mt-2 text-purple-800">Loading quests...</Text>
             </View>
           )}
-
           {/* Quest Error State */}
           {questError && (
             <View className="items-center justify-center py-4">
@@ -210,7 +207,6 @@ const HomeScreen = () => {
               </TouchableOpacity>
             </View>
           )}
-
           {/* Today's Quest Card */}
           {!questLoading && !questError && todayQuest ? (
             <TodayQuestCard
@@ -225,10 +221,8 @@ const HomeScreen = () => {
               <Text className="text-center text-gray-500">Tidak ada quest aktif hari ini</Text>
             </View>
           ) : null}
-
           {/* Aktivitas Terkini */}
           <Text className="mb-4 mt-6 text-xl font-bold">Aktivitas Terkini</Text>
-
           {/* Loading state */}
           {isLoading && !refreshing && (
             <View className="items-center justify-center py-8">
@@ -236,7 +230,6 @@ const HomeScreen = () => {
               <Text className="mt-2 text-purple-800">Loading activities...</Text>
             </View>
           )}
-
           {/* Error state */}
           {error && (
             <View className="items-center justify-center py-8">
@@ -248,30 +241,29 @@ const HomeScreen = () => {
               </TouchableOpacity>
             </View>
           )}
-
           {/* Feed posts */}
           {!isLoading && feedPosts.length === 0 && !error && (
             <View className="items-center justify-center py-8">
               <Text className="text-gray-500">No activities found</Text>
             </View>
           )}
-
           {feedPosts.map((post) => (
-            <ActivityCard
-              key={post.id}
-              username={post.user?.name || 'Unknown User'}
-              timeAgo={getRelativeTime(post.created_at || post.timestamp)}
-              location={post.title || 'Unknown Location'}
-              content={post.caption || ''}
-              questCount={user?.level || 0}
-              setsCount={Math.floor((post.likes_count || 0) * 5)}
-              xpGained={Math.floor((post.likes_count || 0) * 100)}
-              likes={post.likes_count || 0}
-              comments={post.comments_count || 0}
-              onLike={() => handleLike(post.id)}
-              onComment={() => console.log('Comment pressed')}
-              onShare={() => console.log('Share pressed')}
-            />
+            <View key={post.id} className="mb-4 mt-2 overflow-hidden rounded-2xl shadow-sm">
+              <ActivityCard
+                username={post.user?.name || 'Unknown User'}
+                timeAgo={getRelativeTime(post.created_at || post.timestamp)}
+                location={post.title || 'Unknown Location'}
+                content={post.caption || ''}
+                questCount={user?.level || 0}
+                setsCount={Math.floor((post.likes_count || 0) * 5)}
+                xpGained={Math.floor((post.likes_count || 0) * 100)}
+                likes={post.likes_count || 0}
+                comments={post.comments_count || 0}
+                onLike={() => handleLike(post.id)}
+                onComment={() => console.log('Comment pressed')}
+                onShare={() => console.log('Share pressed')}
+              />
+            </View>
           ))}
         </View>
       </ScrollView>

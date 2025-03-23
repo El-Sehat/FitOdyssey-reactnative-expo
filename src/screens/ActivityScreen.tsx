@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   ActivityIndicator,
@@ -11,6 +10,7 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ActivityCard from '~/components/ActivityCard';
 import { useAuth } from '~/context/AuthContext';
@@ -103,8 +103,6 @@ const ActivityScreen = () => {
       } else {
         timeAgo = 'Baru saja';
       }
-
-      // Add time
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
       return `${timeAgo}, ${hours}:${minutes}`;
@@ -138,23 +136,26 @@ const ActivityScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <StatusBar translucent backgroundColor="transparent" />
+    <SafeAreaView edges={['top']} className="flex-1 bg-gray-100">
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-        <View className="flex-1" />
-        <Text className="flex-1 text-center text-xl font-bold">Aktivitasku</Text>
-        <View className="flex-1 items-end">
-          <AntDesign name="filter" size={24} color="black" />
+      {/* Header with proper spacing */}
+      <View className="mb-2 border-b border-gray-200 bg-white px-6 py-4">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1" />
+          <Text className="flex-1 text-center text-xl font-bold">Aktivitasku</Text>
+          <View className="flex-1 items-end">
+            <AntDesign name="filter" size={24} color="black" />
+          </View>
         </View>
       </View>
 
       {/* Content with RefreshControl */}
       <ScrollView
         className="flex-1"
+        contentContainerStyle={{ paddingBottom: 20 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <View className="px-6 pb-6">
+        <View className="px-4 pb-6">
           {/* Loading state */}
           {isLoading && !refreshing && (
             <View className="items-center justify-center py-8">
@@ -184,9 +185,8 @@ const ActivityScreen = () => {
             </View>
           )}
 
-          {/* Activity list */}
           {userActivities.map((activity) => (
-            <View key={activity.id} className="mt-4">
+            <View key={activity.id} className="mb-4 mt-3 overflow-hidden rounded-2xl shadow">
               <ActivityCard
                 username={activity.user?.name || user?.name || 'Unknown User'}
                 timeAgo={getRelativeTime(activity.created_at)}
