@@ -185,7 +185,7 @@ const FeedCreationScreen = () => {
 
           {/* Image picker */}
           <View className="mb-4">
-            <Text className="mb-1 font-medium text-gray-700">Add Photo (Optional)</Text>
+            <Text className="mb-1 font-medium text-gray-700">Add Photo (Required)</Text>
             {image ? (
               <View className="mb-2">
                 <Image source={{ uri: image }} className="h-48 w-full rounded-xl" />
