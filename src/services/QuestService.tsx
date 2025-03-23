@@ -1,7 +1,7 @@
+import { API_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { userService } from './UserService';
-import { API_URL } from '../../.env';
 
 export interface Quest {
   id: number;

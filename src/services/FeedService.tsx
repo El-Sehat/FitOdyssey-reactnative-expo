@@ -1,6 +1,5 @@
+import { FEED_API_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { FEED_API_URL } from '../../.env';
 
 export interface FeedPost {
   created_at: string;
