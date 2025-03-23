@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
 import StartButton from '~/components/StartButton';
@@ -15,7 +15,7 @@ type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Register: undefined;
-  MainApp: undefined;
+  MainApp: { screen?: string };
   MapQuest: undefined;
   Profile: undefined;
 };
@@ -107,6 +107,21 @@ const BottomNavBar = ({ state, descriptors, navigation }: any) => {
 };
 
 const BottomTabNavigator = () => {
+  const route = useRoute();
+  const tabNavigation = useNavigation();
+  useEffect(() => {
+    if (route.params && 'screen' in route.params) {
+      const screenName = route.params.screen;
+      if (
+        typeof screenName === 'string' &&
+        ['Beranda', 'Quest', 'Aktivitas', 'Shop'].includes(screenName)
+      ) {
+        // @ts-ignore
+        tabNavigation.navigate(screenName);
+      }
+    }
+  }, [route.params]);
+
   return (
     <Tab.Navigator
       screenOptions={{

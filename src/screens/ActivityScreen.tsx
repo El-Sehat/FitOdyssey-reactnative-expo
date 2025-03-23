@@ -42,18 +42,15 @@ const ActivityScreen = () => {
       const response = await feedService.getFeedPosts();
 
       if (Array.isArray(response)) {
-        // Filter for user's posts and ensure each post has required properties
         const userPosts = response
           .filter((post) => post.user_id === user.id)
           .map((post) => ({
             ...post,
-            // Ensure user object exists with a name property
             user: post.user || {
               id: post.user_id || user.id,
               name: user.name || 'Unknown User',
               email: user.email || '',
             },
-            // Ensure other required properties exist
             likes_count: post.likes_count || 0,
             comments_count: post.comments_count || 0,
             created_at: post.created_at || new Date().toISOString(),
@@ -278,7 +275,6 @@ const ActivityScreen = () => {
           </View>
         </View>
       </Modal>
-      // Add a "Post New Activity" floating button (add this just above the closing ScrollView tag)
       <TouchableOpacity
         className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-purple-800"
         style={{ elevation: 5 }}

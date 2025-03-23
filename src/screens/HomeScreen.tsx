@@ -159,7 +159,7 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <ScrollView
         className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

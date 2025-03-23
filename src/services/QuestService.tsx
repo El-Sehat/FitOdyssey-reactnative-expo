@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { userService } from './UserService';
 import { API_URL } from '../../.env';
 
 export interface Quest {
@@ -197,6 +198,63 @@ class QuestService {
       return workouts.every((workout) => workout.is_finished);
     } catch (error) {
       console.error('Error checking if all workouts are completed:', error);
+      return false;
+    }
+  }
+
+  // Add or update this method in the QuestService class
+  async awardQuestExpIfCompleted(quest: Quest, userId: number): Promise<boolean> {
+    try {
+      // Check if quest is actually completed
+      if (!this.hasCompletedQuest(quest, userId)) {
+        console.log(`Cannot award EXP: Quest ${quest.id} is not completed by user ${userId}`);
+        return false;
+      }
+
+      // Check if we've already awarded experience for this quest
+      const awardedExpKey = `quest_exp_awarded_${quest.id}_${userId}`;
+      const alreadyAwarded = await AsyncStorage.getItem(awardedExpKey);
+
+      if (alreadyAwarded) {
+        console.log(`EXP already awarded for quest ${quest.id} to user ${userId}`);
+        return false;
+      }
+
+      console.log(`Awarding ${quest.exp} EXP for quest ${quest.id} to user ${userId}`);
+
+      // Try to award experience
+      const response = await userService.addUserExp(userId, quest.exp);
+
+      // Mark this quest as having awarded exp regardless of the result
+      // This prevents repeated award attempts
+      await AsyncStorage.setItem(
+        awardedExpKey,
+        JSON.stringify({
+          awarded: true,
+          timestamp: new Date().toISOString(),
+          expAmount: quest.exp,
+        }),
+      );
+
+      console.log(`Quest ${quest.id} marked as having awarded EXP to user ${userId}`);
+
+      // Return whether a level up occurred
+      return (response && response.levelUp) || false;
+    } catch (error) {
+      console.error('Error in awardQuestExpIfCompleted:', error);
+
+      // Even on error, mark as awarded to prevent repeated failures
+      const awardedExpKey = `quest_exp_awarded_${quest.id}_${userId}`;
+      await AsyncStorage.setItem(
+        awardedExpKey,
+        JSON.stringify({
+          awarded: true,
+          timestamp: new Date().toISOString(),
+          expAmount: quest.exp,
+          error: true,
+        }),
+      );
+
       return false;
     }
   }

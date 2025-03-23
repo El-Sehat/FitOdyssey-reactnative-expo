@@ -9,7 +9,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Navigation />
-      <StatusBar style="auto" />
+      <StatusBar translucent backgroundColor="transparent" style="dark" />
     </AuthProvider>
   );
 }

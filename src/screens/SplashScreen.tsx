@@ -62,7 +62,7 @@ const SplashScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       {/* Gambar atas */}
       <View className="h-[60%] w-full overflow-hidden">

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -99,6 +100,7 @@ const QuestScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <ScrollView
         className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

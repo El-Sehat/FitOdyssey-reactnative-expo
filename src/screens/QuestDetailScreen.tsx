@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,13 +28,16 @@ const QuestDetailScreen = () => {
   const route = useRoute<QuestDetailScreenRouteProp>();
   const navigation = useNavigation<QuestDetailScreenNavigationProp>();
   const { quest } = route.params;
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [workouts, setWorkouts] = useState<QuestWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedExists, setFeedExists] = useState(false);
   const [checkingFeed, setCheckingFeed] = useState(false);
+  const [existingFeedImage, setExistingFeedImage] = useState<string | null>(null);
+  const [awardedExp, setAwardedExp] = useState(false);
+  const [isAwardingExp, setIsAwardingExp] = useState(false);
 
   const [isQuestCompleted, setIsQuestCompleted] = useState(
     questService.hasCompletedQuest(quest, user?.id || 0),
@@ -58,12 +62,54 @@ const QuestDetailScreen = () => {
       );
 
       setFeedExists(!!questFeed);
+      if (questFeed && questFeed.picUrl) {
+        setExistingFeedImage(questFeed.picUrl);
+      }
     } catch (error) {
       console.error('Error checking for existing feed:', error);
     } finally {
       setCheckingFeed(false);
     }
   }, [user, quest.name, isQuestCompleted]);
+
+  // Function to award experience for completed quests
+  const awardExpForCompletedQuest = useCallback(async () => {
+    if (!user || !isQuestCompleted || awardedExp || isAwardingExp) return;
+
+    try {
+      setIsAwardingExp(true);
+      console.log(`Attempting to award EXP for quest ${quest.id} to user ${user.id}`);
+
+      const leveledUp = await questService.awardQuestExpIfCompleted(quest, user.id);
+
+      if (leveledUp) {
+        Alert.alert('🎉 Level Up! 🎉', `You've gained ${quest.exp} XP and leveled up!`, [
+          { text: 'Awesome!' },
+        ]);
+      } else {
+        // Optional: Show a more subtle notification for just gaining EXP
+        console.log(`User gained ${quest.exp} XP but didn't level up`);
+      }
+
+      setAwardedExp(true);
+
+      // Force refresh of user data in AuthContext to update the exp/level
+      if (refreshUser && typeof refreshUser === 'function') {
+        await refreshUser();
+      }
+    } catch (error) {
+      console.error('Error awarding experience:', error);
+    } finally {
+      setIsAwardingExp(false);
+    }
+  }, [user, quest, isQuestCompleted, awardedExp, isAwardingExp, refreshUser]);
+
+  // Check if the quest is newly completed and award exp
+  useEffect(() => {
+    if (isQuestCompleted && user) {
+      awardExpForCompletedQuest();
+    }
+  }, [isQuestCompleted, user, awardExpForCompletedQuest]);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +124,19 @@ const QuestDetailScreen = () => {
           const updatedQuest = questsData.find((q) => q.id === quest.id);
 
           if (updatedQuest) {
-            setIsQuestCompleted(questService.hasCompletedQuest(updatedQuest, user.id));
+            const wasCompleted = isQuestCompleted;
+            const isNowCompleted = questService.hasCompletedQuest(updatedQuest, user.id);
+
+            setIsQuestCompleted(isNowCompleted);
+
+            // If the quest was just completed, show a congratulations message
+            if (!wasCompleted && isNowCompleted) {
+              Alert.alert(
+                'Quest Completed!',
+                `Congratulations! You've completed "${quest.name}" and earned ${quest.exp} XP.`,
+                [{ text: 'Great!' }],
+              );
+            }
           }
 
           const workoutsData = await questService.getQuestWorkouts(quest.id);
@@ -97,7 +155,7 @@ const QuestDetailScreen = () => {
 
       fetchWorkouts();
       checkExistingFeed();
-    }, [quest.id, user, checkExistingFeed]),
+    }, [quest.id, user, checkExistingFeed, isQuestCompleted]),
   );
 
   const handleGoBack = () => {
@@ -242,9 +300,33 @@ const QuestDetailScreen = () => {
           </View>
         </View>
 
+        {/* Experience info for completed quests */}
+        {isQuestCompleted && (
+          <View className="mx-4 mt-4 rounded-xl border border-purple-200 bg-purple-50 p-3">
+            <View className="flex-row items-center">
+              <FontAwesome5 name="medal" size={16} color="#6B21A8" />
+              <Text className="ml-2 font-medium text-purple-900">Experience Gained</Text>
+            </View>
+            <Text className="mt-1 text-purple-800">
+              You earned <Text className="font-bold">+{quest.exp} XP</Text> from this quest!
+            </Text>
+          </View>
+        )}
+
         {/* Share to Activity button - only show for completed quests */}
         {isQuestCompleted && (
           <View className="mx-4 mt-4">
+            {/* Show existing feed image if available */}
+            {feedExists && existingFeedImage && (
+              <View className="mb-2 overflow-hidden rounded-xl">
+                <Image
+                  source={{ uri: existingFeedImage }}
+                  className="h-40 w-full"
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+
             <TouchableOpacity
               className={`flex-row items-center justify-center rounded-xl p-3 ${
                 feedExists ? 'bg-gray-300' : 'bg-purple-800'
