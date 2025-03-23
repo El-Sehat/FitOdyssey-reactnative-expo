@@ -77,12 +77,10 @@ const QuestDetailScreen = () => {
           const questsData = await questService.getActiveQuests();
           const updatedQuest = questsData.find((q) => q.id === quest.id);
 
-          // Update local isQuestCompleted state
           if (updatedQuest) {
             setIsQuestCompleted(questService.hasCompletedQuest(updatedQuest, user.id));
           }
 
-          // Get updated workouts
           const workoutsData = await questService.getQuestWorkouts(quest.id);
           setWorkouts(workoutsData);
 
